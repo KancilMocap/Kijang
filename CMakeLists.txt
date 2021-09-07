@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
@@ -28,8 +28,11 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick Network Concurrent SerialPor
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Network Concurrent SerialPort REQUIRED)
 
 set(PROJECT_SOURCES
-        main.cpp
         qml.qrc
+        src/main.cpp
+        src/application/kijang.h src/application/kijang.cpp
+        src/application/kijanglogger.h src/application/kijanglogger.cpp
+        src/application/kijangsettings.h src/application/kijangsettings.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

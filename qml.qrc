@@ -1,5 +1,14 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>res/pages/Home.qml</file>
+        <file>res/pages/Input.qml</file>
+        <file>res/pages/Settings.qml</file>
+        <file>res/components/AudioInput.qml</file>
+        <file>res/components/VideoInput.qml</file>
+        <file>res/components/MotionInput.qml</file>
+        <file>res/dialogs/ManageDeviceDialog.qml</file>
+        <file>res/dialogs/ManageUserDialog.qml</file>
+        <file>res/dialogs/ManageSerialDialog.qml</file>
     </qresource>
 </RCC>
