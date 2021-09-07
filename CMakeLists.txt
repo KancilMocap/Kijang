@@ -24,8 +24,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick Network Concurrent SerialPort REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Network Concurrent SerialPort REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -49,13 +49,23 @@ else()
     endif()
 endif()
 
+# Custom libraries here
+add_library(libfreenect SHARED IMPORTED)
+set_target_properties(libfreenect PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect/libfreenect.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect")
+add_library(libfreenect2 SHARED IMPORTED)
+set_target_properties(libfreenect2 PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect2/libfreenect2-openni2.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect2")
+
 target_compile_definitions(kijang
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(kijang
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort)
 
 set_target_properties(kijang PROPERTIES
-    MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
+    MACOSX_BUNDLE_GUI_IDENTIFIER moe.kancil.kijang
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
@@ -64,3 +74,9 @@ if(QT_VERSION_MAJOR EQUAL 6)
     qt_import_qml_plugins(kijang)
     qt_finalize_executable(kijang)
 endif()
+
+# Set version numbering
+add_compile_definitions(VERSION_MAJOR=0)
+add_compile_definitions(VERSION_MINOR=0)
+add_compile_definitions(VERSION_MIC=1)
+add_compile_definitions(VERSION_DEBUG=1)
