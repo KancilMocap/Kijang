@@ -3,8 +3,9 @@
 
 #include <QObject>
 #include <QDebug>
+#include "udpoutputinterface.h"
 
-class UdpAudioOutput : public QObject
+class UdpAudioOutput : public QObject, public UdpOutputInterface
 {
     Q_OBJECT
 public:

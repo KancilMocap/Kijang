@@ -32,13 +32,29 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/application/kijang.h src/application/kijang.cpp
         src/application/kijanglogger.h src/application/kijanglogger.cpp
+
+        src/input/kijanginputmanager.h src/input/kijanginputmanager.cpp
+
+        src/input/audioinput.h src/input/audioinput.cpp
+        src/input/videoinput.h src/input/videoinput.cpp
+        src/input/motioninput.h src/input/motioninput.cpp
+
+        src/input/kinect360input.h src/input/kinect360input.cpp
+        src/input/kinectoneinput.h src/input/kinectoneinput.cpp
+        src/input/webcaminput.h src/input/webcaminput.cpp
+        src/input/microphoneinput.h src/input/microphoneinput.cpp
+
         src/network/kijangnetworkmanager.h src/network/kijangnetworkmanager.cpp
         src/network/kijangtcpserver.h src/network/kijangtcpserver.cpp
         src/network/communicationclient.h src/network/communicationclient.cpp
         src/network/statusclient.h src/network/statusclient.cpp
+
+        src/network/udplistenerinterface.h src/network/udplistenerinterface.cpp
         src/network/udpaudiolistener.h src/network/udpaudiolistener.cpp
         src/network/udpvideolistener.h src/network/udpvideolistener.cpp
         src/network/udpmotionlistener.h src/network/udpmotionlistener.cpp
+
+        src/network/udpoutputinterface.h src/network/udpoutputinterface.cpp
         src/network/udpaudiooutput.h src/network/udpaudiooutput.cpp
         src/network/udpvideooutput.h src/network/udpvideooutput.cpp
         src/network/udpmotionoutput.h src/network/udpmotionoutput.cpp

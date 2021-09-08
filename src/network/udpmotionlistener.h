@@ -3,8 +3,9 @@
 
 #include <QObject>
 #include <QDebug>
+#include "udplistenerinterface.h"
 
-class UdpMotionListener : public QObject
+class UdpMotionListener : public QObject, public UdpListenerInterface
 {
     Q_OBJECT
 public:

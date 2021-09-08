@@ -44,6 +44,18 @@ int Kijang::run(int argc, char **argv)
     }, Qt::QueuedConnection);
     m_engine->load(url);
 
+    // Initialises servers if needed
+    QSettings settings;
+    settings.beginGroup("output");
+    // TODO: Start input manager
+    if (settings.value("enable_serial", false).toBool()) {
+        // TODO: Enable serial communication
+    }
+    if (settings.value("enable_ethernet", false).toBool()) {
+        // TODO: Start network manager
+    }
+    settings.endGroup();
+
     return app.exec();
 }
 
@@ -62,4 +74,5 @@ QString Kijang::getTypeQml(PageType type)
     case PageType::Settings:
         return "res/pages/Settings.qml";
     }
+    return nullptr;
 }

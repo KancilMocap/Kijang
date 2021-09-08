@@ -3,8 +3,9 @@
 
 #include <QObject>
 #include <QDebug>
+#include "udplistenerinterface.h"
 
-class UdpAudioListener : public QObject
+class UdpAudioListener : public QObject, public UdpListenerInterface
 {
     Q_OBJECT
 public:
