@@ -32,7 +32,16 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/application/kijang.h src/application/kijang.cpp
         src/application/kijanglogger.h src/application/kijanglogger.cpp
-        src/application/kijangsettings.h src/application/kijangsettings.cpp
+        src/network/kijangnetworkmanager.h src/network/kijangnetworkmanager.cpp
+        src/network/kijangtcpserver.h src/network/kijangtcpserver.cpp
+        src/network/communicationclient.h src/network/communicationclient.cpp
+        src/network/statusclient.h src/network/statusclient.cpp
+        src/network/udpaudiolistener.h src/network/udpaudiolistener.cpp
+        src/network/udpvideolistener.h src/network/udpvideolistener.cpp
+        src/network/udpmotionlistener.h src/network/udpmotionlistener.cpp
+        src/network/udpaudiooutput.h src/network/udpaudiooutput.cpp
+        src/network/udpvideooutput.h src/network/udpvideooutput.cpp
+        src/network/udpmotionoutput.h src/network/udpmotionoutput.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

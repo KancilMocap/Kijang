@@ -5,6 +5,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QDateTime>
+#include <QSettings>
 #include <QVersionNumber>
 #include <QSharedPointer>
 #include "kijanglogger.h"
@@ -22,7 +23,10 @@ public:
     };
     int run(int argc, char** argv);
 
+    static const QString &getSettingsFile();
+
 private:
+    static QString settingsFile;
     QString getTypeQml(PageType type);
     QSharedPointer<QQmlApplicationEngine> m_engine;
 

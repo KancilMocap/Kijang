@@ -1,5 +1,10 @@
 #include "kijang.h"
 
+Q_DECLARE_LOGGING_CATEGORY(application);
+Q_LOGGING_CATEGORY(application,"application");
+
+QString Kijang::settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
+
 Kijang::Kijang()
 {
     qDebug() << "Application constructed";
@@ -40,6 +45,11 @@ int Kijang::run(int argc, char **argv)
     m_engine->load(url);
 
     return app.exec();
+}
+
+const QString &Kijang::getSettingsFile()
+{
+    return settingsFile;
 }
 
 QString Kijang::getTypeQml(PageType type)
