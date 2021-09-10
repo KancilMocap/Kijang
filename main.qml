@@ -1,7 +1,7 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.3
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Layouts
 
 ApplicationWindow {
     width: 640
@@ -25,6 +25,11 @@ ApplicationWindow {
                 text: qsTr("Settings")
                 onClicked: m_container.source = "res/pages/Settings.qml"
             }
+            ToolButton {
+                text: qsTr("Logs")
+                onClicked: m_container.source = "res/pages/Logs.qml"
+                visible: false
+            }
         }
     }
 
@@ -32,5 +37,7 @@ ApplicationWindow {
         id: m_container
         objectName: "m_container"
         source: "res/pages/Home.qml"
+        width: parent.width
+        height: parent.height
     }
 }

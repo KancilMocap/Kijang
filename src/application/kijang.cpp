@@ -5,14 +5,14 @@ Q_LOGGING_CATEGORY(application,"application");
 
 QString Kijang::settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
 
-Kijang::Kijang()
+Kijang::Kijang(QObject *parent) : QObject(parent)
 {
-    qDebug() << "Application constructed";
+    qDebug(application) << "Application constructed";
 }
 
 Kijang::~Kijang()
 {
-    qDebug() << "Application deconstructed";
+    qDebug(application) << "Application deconstructed";
 }
 
 int Kijang::run(int argc, char **argv)
@@ -32,6 +32,8 @@ int Kijang::run(int argc, char **argv)
 
     // Attach logger
     KijangLogger::attach();
+    qInfo(application) << "Starting" << QCoreApplication::applicationName();
+    qInfo(application) << "Current version:" << versionString;
 
     // Loads home page
     QGuiApplication app(argc, argv);
@@ -47,7 +49,7 @@ int Kijang::run(int argc, char **argv)
     // Initialises servers if needed
     QSettings settings;
     settings.beginGroup("output");
-    // TODO: Start input manager
+    m_inputManager.start();
     if (settings.value("enable_serial", false).toBool()) {
         // TODO: Enable serial communication
     }
@@ -75,4 +77,14 @@ QString Kijang::getTypeQml(PageType type)
         return "res/pages/Settings.qml";
     }
     return nullptr;
+}
+
+const KijangNetworkManager &Kijang::networkManager() const
+{
+    return m_networkManager;
+}
+
+const KijangInputManager &Kijang::inputManager() const
+{
+    return m_inputManager;
 }

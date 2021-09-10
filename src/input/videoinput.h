@@ -6,6 +6,9 @@ class VideoInput
 {
 public:
     VideoInput();
+
+private:
+
 };
 
 #endif // VIDEOINPUT_H

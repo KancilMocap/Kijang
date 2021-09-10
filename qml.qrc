@@ -10,5 +10,6 @@
         <file>res/dialogs/ManageDeviceDialog.qml</file>
         <file>res/dialogs/ManageUserDialog.qml</file>
         <file>res/dialogs/ManageSerialDialog.qml</file>
+        <file>res/pages/Logs.qml</file>
     </qresource>
 </RCC>

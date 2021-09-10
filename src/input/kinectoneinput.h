@@ -6,7 +6,7 @@
 #include "videoinput.h"
 #include "motioninput.h"
 
-class KinectOneInput : public QObject, public AudioInput, public VideoInput, public MotionInput
+class KinectOneInput : public QObject, public VideoInput, public MotionInput
 {
     Q_OBJECT
 public:

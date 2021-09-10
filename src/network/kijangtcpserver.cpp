@@ -10,7 +10,7 @@ KijangTcpServer::KijangTcpServer(ServerType type, QObject *parent) : QTcpServer(
 
 bool KijangTcpServer::start(quint16 port, bool autoSearch)
 {
-
+    return false;
 }
 
 void KijangTcpServer::quit()
@@ -20,7 +20,7 @@ void KijangTcpServer::quit()
 
 int KijangTcpServer::findPort()
 {
-
+    return 0;
 }
 
 
