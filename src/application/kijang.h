@@ -8,6 +8,7 @@
 #include <QSettings>
 #include <QVersionNumber>
 #include <QSharedPointer>
+#include <QtQml>
 #include "kijanglogger.h"
 #include "../input/kijanginputmanager.h"
 #include "../network/kijangnetworkmanager.h"
@@ -19,22 +20,14 @@ public:
     explicit Kijang(QObject *parent = nullptr);
     ~Kijang();
 
-    enum PageType {
-        Home,
-        Input,
-        Settings
-    };
     int run(int argc, char** argv);
 
     static const QString &getSettingsFile();
-
     const KijangInputManager &inputManager() const;
-
     const KijangNetworkManager &networkManager() const;
 
 private:
     static QString settingsFile;
-    QString getTypeQml(PageType type);
     QSharedPointer<QQmlApplicationEngine> m_engine;
 
     KijangInputManager m_inputManager;

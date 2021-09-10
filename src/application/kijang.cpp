@@ -38,6 +38,8 @@ int Kijang::run(int argc, char **argv)
     // Loads home page
     QGuiApplication app(argc, argv);
     m_engine = QSharedPointer<QQmlApplicationEngine>(new QQmlApplicationEngine());
+    KijangLogger logger;
+    m_engine->rootContext()->setContextProperty("kijangLogsUI", &logger);
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(m_engine.data(), &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
@@ -64,19 +66,6 @@ int Kijang::run(int argc, char **argv)
 const QString &Kijang::getSettingsFile()
 {
     return settingsFile;
-}
-
-QString Kijang::getTypeQml(PageType type)
-{
-    switch (type) {
-    case PageType::Home:
-        return "res/pages/Home.qml";
-    case PageType::Input:
-        return "res/pages/Input.qml";
-    case PageType::Settings:
-        return "res/pages/Settings.qml";
-    }
-    return nullptr;
 }
 
 const KijangNetworkManager &Kijang::networkManager() const

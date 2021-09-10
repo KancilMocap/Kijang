@@ -1,16 +1,22 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 ScrollView {
-    implicitWidth: 100
-    implicitHeight: 100
+    width: parent.width
+    height: parent.height
 
-    Text {
-        font.bold: true
-        text: qsTr("Logs")
-    }
+    ColumnLayout {
+        Text {
+            font.bold: true
+            text: qsTr("Logs")
+            color: "white"
+        }
 
-    Text {
-        objectName: "logsUI"
+        Text {
+            objectName: "logsUI"
+            text: kijangLogsUI.logString
+            color: "white"
+        }
     }
 }

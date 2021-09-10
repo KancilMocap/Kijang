@@ -2,12 +2,14 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Universal
 
 ApplicationWindow {
     width: 640
     height: 480
     visible: true
     title: qsTr("Kijang")
+    Universal.theme: Universal.Dark
 
     header: ToolBar {
         width: parent.width
@@ -28,7 +30,6 @@ ApplicationWindow {
             ToolButton {
                 text: qsTr("Logs")
                 onClicked: m_container.source = "res/pages/Logs.qml"
-                visible: false
             }
         }
     }

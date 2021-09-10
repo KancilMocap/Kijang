@@ -26,6 +26,10 @@ set(PROJECT_SOURCES
         src/input/videoinput.h src/input/videoinput.cpp
         src/input/motioninput.h src/input/motioninput.cpp
 
+        src/input/pilandukaudioinput.h src/input/pilandukaudioinput.cpp
+        src/input/pilandukvideoinput.h src/input/pilandukvideoinput.cpp
+        src/input/pilandukmotioninput.h src/input/pilandukmotioninput.cpp
+
         src/input/kinect360input.h src/input/kinect360input.cpp
         src/input/kinectoneinput.h src/input/kinectoneinput.cpp
         src/input/webcaminput.h src/input/webcaminput.cpp

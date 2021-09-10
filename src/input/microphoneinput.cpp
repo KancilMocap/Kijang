@@ -8,6 +8,7 @@ MicrophoneInput::MicrophoneInput(QObject *parent) : QObject(parent)
 
 MicrophoneInput::~MicrophoneInput()
 {
+    if (m_audioSource) m_audioSource->stop();
     QLoggingCategory inputs("inputs");
     qDebug(inputs) << "Microphone input deconstructed";
 }
@@ -57,18 +58,28 @@ void MicrophoneInput::stateChanged(QAudio::State state)
 
 void MicrophoneInput::audioStart()
 {
+    QLoggingCategory inputs("inputs");
+    if (!m_audioSource) {
+        qWarning(inputs) << this << "attempted start but audio source not set";
+        return;
+    }
+
     m_audioStarted = true;
     m_audioErrorred = false;
     m_audioSource->start(&m_audioStream);
-    QLoggingCategory inputs("inputs");
     qDebug(inputs) << this << "started";
 }
 
 void MicrophoneInput::audioStop()
 {
+    QLoggingCategory inputs("inputs");
+    if (!m_audioSource) {
+        qWarning(inputs) << this << "attempted stop but audio source not set";
+        return;
+    }
+
     m_audioStarted = false;
     m_audioErrorred = false;
     m_audioSource->stop();
-    QLoggingCategory inputs("inputs");
     qDebug(inputs) << this << "stopped";
 }

@@ -1,6 +1,7 @@
 #include "kijanglogger.h"
 
 QString KijangLogger::filename = QDir::currentPath() + QDir::separator() + "logs" + QDir::separator() + "kijang.log";
+QString KijangLogger::m_logString = "";
 int KijangLogger::cacheCount = 0;
 int KijangLogger::exportCacheCount = 200;
 qint64 KijangLogger::lastExportTime = QDateTime::currentSecsSinceEpoch();
@@ -45,13 +46,15 @@ void KijangLogger::handler(QtMsgType type, const QMessageLogContext &context, co
         break;
     }
 #ifdef QT_DEBUG
-    txt = QDateTime::currentDateTime().toString() + " - " + txt + context.file + " line: " + QString::number(context.line);
+    txt = QDateTime::currentDateTime().toString() + " - " + txt + " " + context.file + " line: " + QString::number(context.line);
     KijangLogger::cachedLogs << txt;
+    KijangLogger::m_logString += (txt + "\r\n");
     KijangLogger::cacheCount += 1;
 #else
     if (type != QtDebugMsg) {
-        txt = QDateTime::currentDateTime().toString() + " - " + txt + context.file + " line: " + QString::number(context.line);
+        txt = QDateTime::currentDateTime().toString() + " - " + txt;
         KijangLogger::cachedLogs << txt;
+        KijangLogger::m_logString += (txt + "\r\n");
         KijangLogger::cacheCount += 1;
     }
 #endif
@@ -74,4 +77,14 @@ void KijangLogger::flush()
         ts.flush();
         file.close();
     }
+}
+
+const QString &KijangLogger::logString()
+{
+    return m_logString;
+}
+
+void KijangLogger::setLogString(const QString &newLogString)
+{
+    m_logString = newLogString;
 }

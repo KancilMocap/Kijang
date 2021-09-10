@@ -2,10 +2,14 @@
 
 int KijangTcpServer::maxThreadCount = 50;
 
-KijangTcpServer::KijangTcpServer(ServerType type, QObject *parent) : QTcpServer(parent)
+KijangTcpServer::KijangTcpServer(QObject *parent) : QTcpServer(parent)
 {
     pool.setMaxThreadCount(KijangTcpServer::maxThreadCount);
-    m_type = type;
+}
+
+void KijangTcpServer::setType(ServerType newType)
+{
+    m_type = newType;
 }
 
 bool KijangTcpServer::start(quint16 port, bool autoSearch)

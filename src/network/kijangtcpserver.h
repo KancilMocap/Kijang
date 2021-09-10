@@ -14,8 +14,10 @@ public:
         Communication,
         Status
     };
-    explicit KijangTcpServer(ServerType type, QObject *parent=nullptr);
+    explicit KijangTcpServer(QObject *parent=nullptr);
     static int maxThreadCount;
+
+    void setType(ServerType newType);
 
 private:
     QThreadPool pool;
