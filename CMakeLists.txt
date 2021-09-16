@@ -39,6 +39,7 @@ set(PROJECT_SOURCES
         src/network/kijangtcpserver.h src/network/kijangtcpserver.cpp
         src/network/communicationclient.h src/network/communicationclient.cpp
         src/network/statusclient.h src/network/statusclient.cpp
+        src/network/kijangprotocol.h src/network/kijangprotocol.cpp
 
         src/network/udplistenerinterface.h src/network/udplistenerinterface.cpp
         src/network/udpaudiolistener.h src/network/udpaudiolistener.cpp
@@ -81,13 +82,13 @@ set_target_properties(libfreenect PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect")
 add_library(libfreenect2 SHARED IMPORTED)
 set_target_properties(libfreenect2 PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect2/libfreenect2-openni2.so"
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect2/libfreenect2.so"
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect2")
 
 target_compile_definitions(kijang
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(kijang
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia)
+  PRIVATE libfreenect libfreenect2 Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia)
 
 set_target_properties(kijang PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER moe.kancil.kijang

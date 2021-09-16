@@ -10,12 +10,15 @@
 #include <QSharedPointer>
 #include <QtQml>
 #include "kijanglogger.h"
+#include "../network/kijangprotocol.h"
 #include "../input/kijanginputmanager.h"
 #include "../network/kijangnetworkmanager.h"
 
 class Kijang : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool ethernetEnabled READ ethernetEnabled WRITE setEthernetEnabled NOTIFY ethernetEnabledChanged)
+    Q_PROPERTY(bool serialEnabled READ serialEnabled WRITE setSerialEnabled NOTIFY serialEnabledChanged)
 public:
     explicit Kijang(QObject *parent = nullptr);
     ~Kijang();
@@ -26,7 +29,18 @@ public:
     const KijangInputManager &inputManager() const;
     const KijangNetworkManager &networkManager() const;
 
+
+
+    bool ethernetEnabled() const;
+    void setEthernetEnabled(bool newEthernetEnabled);
+
+    bool serialEnabled() const;
+    void setSerialEnabled(bool newSerialEnabled);
+
 private:
+    bool m_ethernetEnabled;
+    bool m_serialEnabled;
+
     static QString settingsFile;
     QSharedPointer<QQmlApplicationEngine> m_engine;
 
@@ -34,6 +48,8 @@ private:
     KijangNetworkManager m_networkManager;
 
 signals:
+    void ethernetEnabledChanged();
+    void serialEnabledChanged();
 
 public slots:
 

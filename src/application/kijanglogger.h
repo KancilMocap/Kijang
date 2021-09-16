@@ -1,6 +1,7 @@
 #ifndef KIJANGLOGGER_H
 #define KIJANGLOGGER_H
 
+#include <QCoreApplication>
 #include <QObject>
 #include <QDebug>
 #include <QDateTime>
@@ -28,6 +29,7 @@ public slots:
     static void flush();
 
 private:
+    static QString rootDir;
     static QString filename;
     static QStringList cachedLogs;
     static int cacheCount;

@@ -7,16 +7,28 @@ QString Kijang::settingsFile = QCoreApplication::applicationDirPath() + "/settin
 
 Kijang::Kijang(QObject *parent) : QObject(parent)
 {
-    qDebug(application) << "Application constructed";
+    qDebug(application) << "Application constructed, loading settings...";
+    QSettings settings;
+    settings.beginGroup("output");
+    setEthernetEnabled(settings.value("enable_ethernet", true).toBool());
+    setSerialEnabled(settings.value("enable_serial", true).toBool());
+    settings.endGroup();
 }
 
 Kijang::~Kijang()
 {
-    qDebug(application) << "Application deconstructed";
+    qDebug(application) << "Application deconstructed, saving settings...";
+    QSettings settings;
+    settings.beginGroup("output");
+    settings.setValue("enable_ethernet", m_ethernetEnabled);
+    settings.setValue("enable_serial", m_serialEnabled);
+    settings.endGroup();
+    settings.sync();
 }
 
 int Kijang::run(int argc, char **argv)
 {
+    qRegisterMetaType<KijangProtocol>();
 
     // Set application info
     QCoreApplication::setApplicationName("Kijang");
@@ -39,7 +51,10 @@ int Kijang::run(int argc, char **argv)
     QGuiApplication app(argc, argv);
     m_engine = QSharedPointer<QQmlApplicationEngine>(new QQmlApplicationEngine());
     KijangLogger logger;
+    m_engine->rootContext()->setContextProperty("kijangApp", this);
     m_engine->rootContext()->setContextProperty("kijangLogsUI", &logger);
+    m_engine->rootContext()->setContextProperty("kijangInputManager", &m_inputManager);
+    m_engine->rootContext()->setContextProperty("kijangNetworkManager", &m_networkManager);
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(m_engine.data(), &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
@@ -49,16 +64,13 @@ int Kijang::run(int argc, char **argv)
     m_engine->load(url);
 
     // Initialises servers if needed
-    QSettings settings;
-    settings.beginGroup("output");
     m_inputManager.start();
-    if (settings.value("enable_serial", false).toBool()) {
+    if (m_serialEnabled) {
         // TODO: Enable serial communication
     }
-    if (settings.value("enable_ethernet", false).toBool()) {
-        // TODO: Start network manager
+    if (m_ethernetEnabled) {
+        m_networkManager.start();
     }
-    settings.endGroup();
 
     return app.exec();
 }
@@ -71,6 +83,34 @@ const QString &Kijang::getSettingsFile()
 const KijangNetworkManager &Kijang::networkManager() const
 {
     return m_networkManager;
+}
+
+bool Kijang::ethernetEnabled() const
+{
+    return m_ethernetEnabled;
+}
+
+void Kijang::setEthernetEnabled(bool newEthernetEnabled)
+{
+    if (m_ethernetEnabled != newEthernetEnabled) {
+        m_ethernetEnabled = newEthernetEnabled;
+        emit ethernetEnabledChanged();
+        if (newEthernetEnabled) {
+            m_networkManager.start();
+        } else {
+            m_networkManager.stop();
+        }
+    }
+}
+
+bool Kijang::serialEnabled() const
+{
+    return m_serialEnabled;
+}
+
+void Kijang::setSerialEnabled(bool newSerialEnabled)
+{
+    m_serialEnabled = newSerialEnabled;
 }
 
 const KijangInputManager &Kijang::inputManager() const

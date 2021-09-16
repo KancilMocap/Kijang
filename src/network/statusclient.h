@@ -7,7 +7,7 @@
 #include <QThread>
 #include <QTcpSocket>
 
-class StatusClient : public QObject, QRunnable
+class StatusClient : public QObject, public QRunnable
 {
     Q_OBJECT
 public:

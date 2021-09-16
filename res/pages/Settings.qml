@@ -47,20 +47,27 @@ Item {
                 CheckBox {
                     id: outputAudio
                     text: qsTr("Output audio")
+                    enabled: false
                 }
                 CheckBox {
                     id: outputVideo
                     text: qsTr("Output video")
+                    enabled: false
                 }
                 CheckBox {
                     id: outputOriginalMotion
                     text: qsTr("Output original motion")
+                    enabled: false
                 }
             }
 
             CheckBox {
+                // https://stackoverflow.com/a/25149119
                 id: outputEthernet
                 text: qsTr("Output via ethernet")
+                onClicked: kijangApp.ethernetEnabled = checked
+                Component.onCompleted: checked = kijangApp.ethernetEnabled
+                onStateChanged: outputEthernet.checked = kijangApp.ethernetEnabled
             }
 
             ColumnLayout {
@@ -74,6 +81,8 @@ Item {
                         id: commPortValue
                         from: 1
                         to: 65535
+                        value: kijangNetworkManager.commServerPort
+                        onValueChanged: kijangNetworkManager.commServerPort = value
                         editable: true
                     }
                     Button {
@@ -82,7 +91,8 @@ Item {
                     Text {
                         id: commWarning
                         color: "red"
-                        visible: false
+                        visible: kijangNetworkManager.commServerError
+                        text: kijangNetworkManager.commServerErrorString
                     }
                 }
 
@@ -94,6 +104,8 @@ Item {
                         id: statusPortValue
                         from: 1
                         to: 65535
+                        value: kijangNetworkManager.statusServerPort
+                        onValueChanged: kijangNetworkManager.statusServerPort = value
                         editable: true
                     }
                     Button {
@@ -102,7 +114,8 @@ Item {
                     Text {
                         id: statusWarning
                         color: "red"
-                        visible: false
+                        visible: kijangNetworkManager.statusServerError
+                        text: kijangNetworkManager.statusServerErrorString
                     }
                 }
 
@@ -153,6 +166,9 @@ Item {
             CheckBox {
                 id: outputSerial
                 text: qsTr("Output via serial")
+                onClicked: kijangApp.serialEnabled = checked
+                Component.onCompleted: checked = kijangApp.serialEnabled
+                onStateChanged: outputSerial.checked = kijangApp.serialEnabled
             }
             Button {
                 text: qsTr("Manage serial devices")

@@ -1,5 +1,6 @@
 #include "kijanglogger.h"
 
+QString KijangLogger::rootDir = QDir::currentPath();
 QString KijangLogger::filename = QDir::currentPath() + QDir::separator() + "logs" + QDir::separator() + "kijang.log";
 QString KijangLogger::m_logString = "";
 int KijangLogger::cacheCount = 0;
@@ -46,7 +47,8 @@ void KijangLogger::handler(QtMsgType type, const QMessageLogContext &context, co
         break;
     }
 #ifdef QT_DEBUG
-    txt = QDateTime::currentDateTime().toString() + " - " + txt + " " + context.file + " line: " + QString::number(context.line);
+    QDir appDir(rootDir);
+    txt = QDateTime::currentDateTime().toString() + " - " + txt + " " + appDir.relativeFilePath(context.file) + " line: " + QString::number(context.line);
     KijangLogger::cachedLogs << txt;
     KijangLogger::m_logString += (txt + "\r\n");
     KijangLogger::cacheCount += 1;
