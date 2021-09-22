@@ -47,7 +47,7 @@ void MicrophoneInput::stateChanged(QAudio::State state)
 {
     QByteArray stateArray("S:");
     stateArray.append(QVariant::fromValue(state).toString().toUtf8());
-    m_audioCustomSignals.write(stateArray);
+    // TODO: Emit signals
     switch(state) {
         case QAudio::State::ActiveState:
             audioStart();

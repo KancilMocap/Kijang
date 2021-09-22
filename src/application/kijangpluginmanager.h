@@ -1,6 +1,7 @@
 #ifndef KIJANGPLUGINMANAGER_H
 #define KIJANGPLUGINMANAGER_H
 
+#include <QObject>
 
 class KijangPluginManager : public QObject
 {
