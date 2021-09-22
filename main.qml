@@ -28,6 +28,11 @@ ApplicationWindow {
                 onClicked: m_container.source = "res/pages/Settings.qml"
             }
             ToolButton {
+                text: qsTr("Plugins")
+                onClicked: m_container.source = "res/pages/Plugins.qml"
+            }
+
+            ToolButton {
                 text: qsTr("Logs")
                 onClicked: m_container.source = "res/pages/Logs.qml"
             }

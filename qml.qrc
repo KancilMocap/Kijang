@@ -11,5 +11,6 @@
         <file>res/dialogs/ManageUserDialog.qml</file>
         <file>res/dialogs/ManageSerialDialog.qml</file>
         <file>res/pages/Logs.qml</file>
+        <file>res/pages/Plugins.qml</file>
     </qresource>
 </RCC>

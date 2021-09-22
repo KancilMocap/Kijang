@@ -2,12 +2,12 @@
 #include <QQmlApplicationEngine>
 #include <QDateTime>
 #include <QWindow>
-#include "application/kijang.h"
+#include "application/kijangapp.h"
 #include "application/kijanglogger.h"
 
 int main(int argc, char *argv[])
 {
-    Kijang kijang;
+    KijangApp kijang;
     int response = kijang.run(argc, argv);
     qDebug() << "Response code: " << response;
     KijangLogger::flush();

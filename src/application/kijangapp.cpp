@@ -1,34 +1,28 @@
-#include "kijang.h"
+#include "kijangapp.h"
 
 Q_DECLARE_LOGGING_CATEGORY(application);
 Q_LOGGING_CATEGORY(application,"application");
 
-QString Kijang::settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
+QString KijangApp::settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
 
-Kijang::Kijang(QObject *parent) : QObject(parent)
+KijangApp::KijangApp(QObject *parent) : QObject(parent)
 {
     qDebug(application) << "Application constructed, loading settings...";
-    QSettings settings;
-    settings.beginGroup("output");
-    setEthernetEnabled(settings.value("enable_ethernet", true).toBool());
-    setSerialEnabled(settings.value("enable_serial", true).toBool());
-    settings.endGroup();
+    // TODO: Load settings
+    // Don't use setters here as it may cause network and serial manager to be prematurely started
+    m_ethernetEnabled = true;
+    m_serialEnabled = false;
 }
 
-Kijang::~Kijang()
+KijangApp::~KijangApp()
 {
     qDebug(application) << "Application deconstructed, saving settings...";
-    QSettings settings;
-    settings.beginGroup("output");
-    settings.setValue("enable_ethernet", m_ethernetEnabled);
-    settings.setValue("enable_serial", m_serialEnabled);
-    settings.endGroup();
-    settings.sync();
+    // TODO: Save settings
 }
 
-int Kijang::run(int argc, char **argv)
+int KijangApp::run(int argc, char **argv)
 {
-    qRegisterMetaType<KijangProtocol>();
+    qRegisterMetaType<Kijang::KijangProtocol>();
 
     // Set application info
     QCoreApplication::setApplicationName("Kijang");
@@ -65,32 +59,27 @@ int Kijang::run(int argc, char **argv)
 
     // Initialises servers if needed
     m_inputManager.start();
-    if (m_serialEnabled) {
-        // TODO: Enable serial communication
-    }
-    if (m_ethernetEnabled) {
-        m_networkManager.start();
-    }
+    // Serial manager and network manager would have been automatically started from QML
 
     return app.exec();
 }
 
-const QString &Kijang::getSettingsFile()
+const QString &KijangApp::getSettingsFile()
 {
     return settingsFile;
 }
 
-const KijangNetworkManager &Kijang::networkManager() const
+const KijangNetworkManager &KijangApp::networkManager() const
 {
     return m_networkManager;
 }
 
-bool Kijang::ethernetEnabled() const
+bool KijangApp::ethernetEnabled() const
 {
     return m_ethernetEnabled;
 }
 
-void Kijang::setEthernetEnabled(bool newEthernetEnabled)
+void KijangApp::setEthernetEnabled(bool newEthernetEnabled)
 {
     if (m_ethernetEnabled != newEthernetEnabled) {
         m_ethernetEnabled = newEthernetEnabled;
@@ -103,17 +92,22 @@ void Kijang::setEthernetEnabled(bool newEthernetEnabled)
     }
 }
 
-bool Kijang::serialEnabled() const
+bool KijangApp::serialEnabled() const
 {
     return m_serialEnabled;
 }
 
-void Kijang::setSerialEnabled(bool newSerialEnabled)
+void KijangApp::setSerialEnabled(bool newSerialEnabled)
 {
     m_serialEnabled = newSerialEnabled;
 }
 
-const KijangInputManager &Kijang::inputManager() const
+const KijangPluginManager &KijangApp::pluginManager() const
+{
+    return m_pluginManager;
+}
+
+const KijangInputManager &KijangApp::inputManager() const
 {
     return m_inputManager;
 }

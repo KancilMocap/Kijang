@@ -5,7 +5,7 @@
 class UdpOutputInterface
 {
 public:
-    UdpOutputInterface();
+
 };
 
 #endif // UDPOUTPUTINTERFACE_H

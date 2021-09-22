@@ -46,12 +46,12 @@ void KijangNetworkManager::stop()
     if (statusServer.started()) statusServer.quit();
 }
 
-quint32 KijangNetworkManager::commServerPort() const
+quint16 KijangNetworkManager::commServerPort() const
 {
     return m_commServerPort;
 }
 
-void KijangNetworkManager::setCommServerPort(quint32 newCommServerPort)
+void KijangNetworkManager::setCommServerPort(quint16 newCommServerPort)
 {
     if (newCommServerPort != m_commServerPort) {
         m_commServerPort = newCommServerPort;
@@ -67,12 +67,12 @@ void KijangNetworkManager::setCommServerPort(quint32 newCommServerPort)
     }
 }
 
-quint32 KijangNetworkManager::statusServerPort() const
+quint16 KijangNetworkManager::statusServerPort() const
 {
     return m_statusServerPort;
 }
 
-void KijangNetworkManager::setStatusServerPort(quint32 newStatusServerPort)
+void KijangNetworkManager::setStatusServerPort(quint16 newStatusServerPort)
 {
     if (newStatusServerPort != m_statusServerPort) {
         m_statusServerPort = newStatusServerPort;
@@ -138,4 +138,14 @@ void KijangNetworkManager::setStatusServerErrorString(const QString &newStatusSe
         return;
     m_statusServerErrorString = newStatusServerErrorString;
     emit statusServerErrorStringChanged();
+}
+
+void KijangNetworkManager::statusAutodetect()
+{
+    statusServer.start(0, true);
+}
+
+void KijangNetworkManager::commAutodetect()
+{
+    commServer.start(0, true);
 }

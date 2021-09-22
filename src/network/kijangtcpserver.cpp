@@ -31,6 +31,7 @@ bool KijangTcpServer::start(quint32 port, bool autoSearch)
 {
     // Pool should be cleared when quit() was called
     QLoggingCategory network("network");
+    if (m_started) quit();
     m_port = port;
     if (autoSearch) m_port = findPort();
     if (m_port) {

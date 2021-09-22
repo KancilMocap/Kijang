@@ -15,8 +15,8 @@
 class KijangNetworkManager : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(quint32 commServerPort READ commServerPort WRITE setCommServerPort NOTIFY commServerPortChanged)
-    Q_PROPERTY(quint32 statusServerPort READ statusServerPort WRITE setStatusServerPort NOTIFY statusServerPortChanged)
+    Q_PROPERTY(quint16 commServerPort READ commServerPort WRITE setCommServerPort NOTIFY commServerPortChanged)
+    Q_PROPERTY(quint16 statusServerPort READ statusServerPort WRITE setStatusServerPort NOTIFY statusServerPortChanged)
     Q_PROPERTY(bool commServerError READ commServerError WRITE setCommServerError NOTIFY commServerErrorChanged)
     Q_PROPERTY(bool statusServerError READ statusServerError WRITE setStatusServerError NOTIFY statusServerErrorChanged)
     Q_PROPERTY(QString commServerErrorString READ commServerErrorString WRITE setCommServerErrorString NOTIFY commServerErrorStringChanged)
@@ -27,10 +27,10 @@ public:
     void start();
     void stop();
 
-    quint32 commServerPort() const;
-    void setCommServerPort(quint32 newCommServerPort);
-    quint32 statusServerPort() const;
-    void setStatusServerPort(quint32 newStatusServerPort);
+    quint16 commServerPort() const;
+    void setCommServerPort(quint16 newCommServerPort);
+    quint16 statusServerPort() const;
+    void setStatusServerPort(quint16 newStatusServerPort);
     bool commServerError() const;
     void setCommServerError(bool newCommServerError);
     bool statusServerError() const;
@@ -39,6 +39,9 @@ public:
     void setCommServerErrorString(const QString &newCommServerErrorString);
     const QString &statusServerErrorString() const;
     void setStatusServerErrorString(const QString &newStatusServerErrorString);
+
+    Q_INVOKABLE void statusAutodetect();
+    Q_INVOKABLE void commAutodetect();
 
 signals:
     void commServerPortChanged();
@@ -49,8 +52,8 @@ signals:
     void statusServerErrorStringChanged();
 
 private:
-    quint32 m_commServerPort;
-    quint32 m_statusServerPort;
+    quint16 m_commServerPort;
+    quint16 m_statusServerPort;
     bool m_commServerError;
     bool m_statusServerError;
     QString m_commServerErrorString;

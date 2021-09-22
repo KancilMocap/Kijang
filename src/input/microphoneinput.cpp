@@ -83,3 +83,24 @@ void MicrophoneInput::audioStop()
     m_audioSource->stop();
     qDebug(inputs) << this << "stopped";
 }
+
+
+const QString &MicrophoneInput::audioErrorString() const
+{
+    return m_audioErrorString;
+}
+
+bool MicrophoneInput::audioStarted() const
+{
+    return m_audioStarted;
+}
+
+bool MicrophoneInput::audioErrorred() const
+{
+    return m_audioErrorred;
+}
+
+const QBuffer &MicrophoneInput::audioStream() const
+{
+    return m_audioStream;
+}

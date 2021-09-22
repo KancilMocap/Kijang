@@ -1,33 +1,27 @@
 #ifndef AUDIOINPUT_H
 #define AUDIOINPUT_H
 
-#include <QString>
+#include <QtPlugin>
 #include <QBuffer>
 
 class AudioInput
 {
 public:
-    AudioInput();
     virtual void audioStart() = 0;
     virtual void audioStop() = 0;
-    const QString &audioErrorString() const;
+    virtual const QString &audioErrorString() const = 0;
 
-    bool audioStarted() const;
-    bool audioErrorred() const;
+    virtual bool audioStarted() const = 0;
+    virtual bool audioErrorred() const = 0;
 
     // To allow multiple inheritance between AudioInput, VideoInput and MotionInput, Qt's signals and slots could not be used
     // Custom signals used to relay to slots instead
-    const QBuffer &audioStream() const;
-    // Each buffer write follows "S:___" where S would be a letter indicating the signal type"
-    const QBuffer &audioCustomSignals() const;
-
-protected:
-    bool m_audioStarted;
-    bool m_audioErrorred;
-    QString m_audioErrorString;
-    QBuffer m_audioStream;
-    QBuffer m_audioCustomSignals;
+    virtual const QBuffer &audioStream() const = 0;
+    // https://stackoverflow.com/a/18113601 - Signals in abstract non-QObject classes
+signals:
 
 };
+
+Q_DECLARE_INTERFACE(AudioInput, "moe.kancil.kijang.input.audioinput")
 
 #endif // AUDIOINPUT_H

@@ -31,7 +31,7 @@ private:
     bool m_started;
     QThreadPool pool;
     ServerType m_type;
-    qint32 m_port;
+    qint16 m_port;
 
 public slots:
     bool start(quint32 port, bool autoSearch = false);

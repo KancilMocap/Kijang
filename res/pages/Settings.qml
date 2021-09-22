@@ -110,6 +110,7 @@ Item {
                     }
                     Button {
                         text: qsTr("Autodetect")
+                        onClicked: kijangNetworkManager.statusAutodetect();
                     }
                     Text {
                         id: statusWarning
@@ -140,6 +141,7 @@ Item {
                     }
                     Button {
                         text: qsTr("Autodetect")
+                        onClicked: kijangNetworkManager.commAutoDetect();
                     }
                     Text {
                         id: ioNotif
@@ -166,6 +168,7 @@ Item {
             CheckBox {
                 id: outputSerial
                 text: qsTr("Output via serial")
+                enabled: false
                 onClicked: kijangApp.serialEnabled = checked
                 Component.onCompleted: checked = kijangApp.serialEnabled
                 onStateChanged: outputSerial.checked = kijangApp.serialEnabled

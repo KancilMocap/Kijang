@@ -17,14 +17,17 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Network Concurrent Seri
 set(PROJECT_SOURCES
         qml.qrc
         src/main.cpp
-        src/application/kijang.h src/application/kijang.cpp
+        src/application/kijangapp.h src/application/kijangapp.cpp
         src/application/kijanglogger.h src/application/kijanglogger.cpp
+        src/kijangplugin.h src/kijangplugin.cpp # Interface
+        src/application/kijangpluginwrapper.h src/application/kijangpluginwrapper.cpp
+        src/application/kijangpluginmanager.h src/application/kijangpluginmanager.cpp
 
         src/input/kijanginputmanager.h src/input/kijanginputmanager.cpp
 
-        src/input/audioinput.h src/input/audioinput.cpp
-        src/input/videoinput.h src/input/videoinput.cpp
-        src/input/motioninput.h src/input/motioninput.cpp
+        src/input/audioinput.h src/input/audioinput.cpp # Interface
+        src/input/videoinput.h src/input/videoinput.cpp # Interface
+        src/input/motioninput.h src/input/motioninput.cpp # Interface
 
         src/input/pilandukaudioinput.h src/input/pilandukaudioinput.cpp
         src/input/pilandukvideoinput.h src/input/pilandukvideoinput.cpp
@@ -39,14 +42,15 @@ set(PROJECT_SOURCES
         src/network/kijangtcpserver.h src/network/kijangtcpserver.cpp
         src/network/communicationclient.h src/network/communicationclient.cpp
         src/network/statusclient.h src/network/statusclient.cpp
-        src/network/kijangprotocol.h src/network/kijangprotocol.cpp
+        src/network/kijangmodulehandler.h src/network/kijangmodulehandler.cpp
 
-        src/network/udplistenerinterface.h src/network/udplistenerinterface.cpp
+        src/network/udplistenerinterface.h src/network/udplistenerinterface.cpp # Interface
         src/network/udpaudiolistener.h src/network/udpaudiolistener.cpp
         src/network/udpvideolistener.h src/network/udpvideolistener.cpp
         src/network/udpmotionlistener.h src/network/udpmotionlistener.cpp
+        src/network/udpfilelistener.h src/network/udpfilelistener.cpp
 
-        src/network/udpoutputinterface.h src/network/udpoutputinterface.cpp
+        src/network/udpoutputinterface.h src/network/udpoutputinterface.cpp # Interface
         src/network/udpaudiooutput.h src/network/udpaudiooutput.cpp
         src/network/udpvideooutput.h src/network/udpvideooutput.cpp
         src/network/udpmotionoutput.h src/network/udpmotionoutput.cpp
@@ -76,19 +80,23 @@ else()
 endif()
 
 # Custom libraries here
-add_library(libfreenect SHARED IMPORTED)
-set_target_properties(libfreenect PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect/libfreenect.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect")
-add_library(libfreenect2 SHARED IMPORTED)
-set_target_properties(libfreenect2 PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libfreenect2/libfreenect2.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/libfreenect2")
+add_library(freenect SHARED IMPORTED)
+set_target_properties(freenect PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect/libfreenect.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect")
+add_library(freenect2 SHARED IMPORTED)
+set_target_properties(freenect2 PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect2/libfreenect2.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect2")
+add_library(kijangProtocol SHARED IMPORTED)
+set_target_properties(kijangProtocol PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/libkijangProtocol.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
 
 target_compile_definitions(kijang
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(kijang
-  PRIVATE libfreenect libfreenect2 Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia)
+  PRIVATE freenect freenect2 kijangProtocol Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia)
 
 set_target_properties(kijang PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER moe.kancil.kijang
