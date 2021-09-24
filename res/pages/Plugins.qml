@@ -33,6 +33,10 @@ RowLayout {
         Button {
             text: qsTr("Delete")
         }
+
+        Button {
+            text: qsTr("Check for updates")
+        }
     }
 
     FileDialog {

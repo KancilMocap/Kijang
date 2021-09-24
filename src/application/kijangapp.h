@@ -30,8 +30,6 @@ public:
     const KijangInputManager &inputManager() const;
     const KijangNetworkManager &networkManager() const;
 
-
-
     bool ethernetEnabled() const;
     void setEthernetEnabled(bool newEthernetEnabled);
 

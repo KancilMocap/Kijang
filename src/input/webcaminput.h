@@ -8,6 +8,7 @@
 class WebcamInput : public QObject, public AudioInput, public VideoInput
 {
     Q_OBJECT
+    Q_INTERFACES(AudioInput VideoInput)
 public:
     explicit WebcamInput(QObject *parent = nullptr);
 

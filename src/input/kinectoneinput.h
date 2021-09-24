@@ -9,6 +9,7 @@
 class KinectOneInput : public QObject, public VideoInput, public MotionInput
 {
     Q_OBJECT
+    Q_INTERFACES(VideoInput MotionInput)
 public:
     explicit KinectOneInput(QObject *parent = nullptr);
 

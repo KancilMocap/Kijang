@@ -7,6 +7,7 @@
 class PilandukVideoInput : public QObject, public VideoInput
 {
     Q_OBJECT
+    Q_INTERFACES(VideoInput)
 public:
     explicit PilandukVideoInput(QObject *parent = nullptr);
 

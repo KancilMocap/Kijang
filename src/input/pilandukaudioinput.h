@@ -7,6 +7,7 @@
 class PilandukAudioInput : public QObject, public AudioInput
 {
     Q_OBJECT
+    Q_INTERFACES(AudioInput)
 public:
     explicit PilandukAudioInput(QObject *parent = nullptr);
 

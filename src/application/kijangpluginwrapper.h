@@ -2,6 +2,7 @@
 #define KIJANGPLUGINWRAPPER_H
 
 #include <QObject>
+#include "../kijangplugin.h"
 
 class KijangPluginWrapper : public QObject
 {
@@ -9,7 +10,13 @@ class KijangPluginWrapper : public QObject
 public:
     explicit KijangPluginWrapper(QObject *parent = nullptr);
 
+    void setPlugin(KijangPlugin *newPlugin);
+    KijangPlugin *plugin() const;
+
 signals:
+
+private:
+    KijangPlugin *m_plugin;
 
 };
 
