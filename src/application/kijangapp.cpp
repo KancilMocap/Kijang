@@ -42,13 +42,14 @@ int KijangApp::run(int argc, char **argv)
     qInfo(application) << "Current version:" << versionString;
 
     // Loads home page
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
     m_engine = QSharedPointer<QQmlApplicationEngine>(new QQmlApplicationEngine());
     KijangLogger logger;
     m_engine->rootContext()->setContextProperty("kijangApp", this);
     m_engine->rootContext()->setContextProperty("kijangLogsUI", &logger);
     m_engine->rootContext()->setContextProperty("kijangInputManager", &m_inputManager);
     m_engine->rootContext()->setContextProperty("kijangNetworkManager", &m_networkManager);
+    m_engine->rootContext()->setContextProperty("kijangPluginManager", &m_pluginManager);
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(m_engine.data(), &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {

@@ -19,7 +19,7 @@ RowLayout {
         width: parent.width * 0.2
         Button {
             text: qsTr("Import from file")
-            onClicked: selectPlugin.open()
+            onClicked: kijangPluginManager.openImportDialog()
         }
 
         Button {
@@ -37,11 +37,5 @@ RowLayout {
         Button {
             text: qsTr("Check for updates")
         }
-    }
-
-    FileDialog {
-        id: selectPlugin
-        title: qsTr("Select a file")
-        currentFolder: shortcuts.home
     }
 }

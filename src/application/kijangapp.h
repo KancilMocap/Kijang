@@ -2,11 +2,12 @@
 #define KIJANGAPP_H
 
 #include <QDebug>
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QDateTime>
 #include <QSettings>
 #include <QVersionNumber>
+#include <QWindow>
 #include <QSharedPointer>
 #include <QtQml>
 #include "kijanglogger.h"

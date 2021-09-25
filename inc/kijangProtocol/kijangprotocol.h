@@ -34,6 +34,7 @@ private:
     quint32 m_clientID;
     quint64 m_requestID;
     quint32 m_packetCount;
+    quint32 m_currentPacket;
     QByteArray m_data;
     ExceptionInfo m_exceptionInfo;
     QString m_errorString;
@@ -59,6 +60,8 @@ public:
     void setData(const QByteArray &newData);
     const QString &errorString() const;
     ExceptionInfo exceptionInfo() const;
+    quint32 currentPacket() const;
+    void setCurrentPacket(quint32 newCurrentPacket);
 };
 
 }

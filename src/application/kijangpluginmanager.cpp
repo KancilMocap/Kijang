@@ -52,6 +52,108 @@ KijangPluginManager::~KijangPluginManager()
     enabledFile.close();
 }
 
+void KijangPluginManager::openImportDialog()
+{
+    QLoggingCategory plugin("plugin");
+    QString libraryFiles = "Library file (";
+    bool canImport = true;
+#ifdef Q_OS_LINUX
+    libraryFiles += "*.so";
+#elif defined (Q_OS_WIN)
+    libraryFiles += "*.dll";
+#elif defined (Q_OS_MACOS)
+    libraryFiles += "*.dylib";
+#else
+    qCritical(plugin) << "Unsupported operating system detected, plugins disabled";
+    canImport = false;
+#endif
+    libraryFiles += ")";
+    if (!canImport) {
+        QErrorMessage errorBox;
+        errorBox.showMessage("Sorry! Your operating system is not supported. Plugins could not be imported.");
+        return;
+    }
+
+    QString filePath = QFileDialog::getOpenFileName(nullptr, "Open file", QDir::homePath(), libraryFiles);
+    if (filePath.isNull()) return;
+
+    QPluginLoader *loader = new QPluginLoader(filePath);
+    if (!loader->load()) {
+        qWarning(plugin) << "Invalid library file" << filePath << ", unable to import plugin";
+        // FIXME: QErrorMessage not showing
+        QErrorMessage errorBox;
+        errorBox.showMessage("The plugin library appears to be invalid.");
+        return;
+    }
+
+    KijangPlugin* kijangPlugin = qobject_cast<KijangPlugin*>(loader->instance());
+    if (!kijangPlugin) {
+        qWarning(plugin) << "Library file" << filePath << "could not be cast to a KijangPlugin instance, unable to import plugin";
+        // FIXME: QErrorMessage not showing
+        QErrorMessage errorBox;
+        errorBox.showMessage("The plugin library appears to be invalid.");
+        return;
+    }
+
+    KijangPluginMetadata pluginMetadata = kijangPlugin->metadata();
+    QString loaderName = loader->fileName();
+    loader->unload();
+    loader->deleteLater();
+    QByteArray sha256Sum = fileChecksum(filePath, QCryptographicHash::Sha256);
+
+    // Confirmation dialog
+    QString title = "Import the following plugin?";
+    QStringList metadataInfo;
+    metadataInfo << "ID: " + pluginMetadata.pluginID;
+    metadataInfo << "Name: " + pluginMetadata.pluginName;
+    metadataInfo << "Version: " + pluginMetadata.pluginVersion;
+    metadataInfo << "Developer: " + pluginMetadata.developerName + " <" + pluginMetadata.developerEmail + ">";
+    metadataInfo << "Site: " + pluginMetadata.pluginSite;
+    metadataInfo << "SHA256: " + sha256Sum.toHex();
+    QMessageBox msgBox;
+    msgBox.setText(title);
+    msgBox.setInformativeText(metadataInfo.join("\n"));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+    if (ret | QMessageBox::Yes) {
+        QFile originalFile(filePath);
+        QFileInfo fileInfo(originalFile);
+        QString fileName = fileInfo.fileName();
+        QString fileFormat = fileInfo.completeSuffix();
+
+        QString targetFilePath = pluginDirPath + QDir::separator() + fileName;
+        QFile targetFile(targetFilePath + fileFormat);
+        targetFilePath.chop(fileFormat.length());
+        quint64 index = 0;
+        while (targetFile.exists()) {
+            index += 1;
+            targetFile.setFileName(targetFilePath + "(" + QString::number(index) + ")" + fileFormat); // Absolute path
+        }
+
+        if (originalFile.copy(QFileInfo(targetFile).absoluteFilePath())) {
+            m_disabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
+            qInfo(plugin) << "Plugin " << pluginMetadata.pluginID << " successfully imported";
+            refreshPluginTable();
+        } else {
+            qWarning(plugin) << "Plugin" << pluginMetadata.pluginID << "could not be copied due to" << originalFile.errorString();
+        }
+    }
+}
+
+QByteArray KijangPluginManager::fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
+{
+    // https://stackoverflow.com/a/16383433
+    QFile f(fileName);
+    if (f.open(QFile::ReadOnly)) {
+        QCryptographicHash hash(hashAlgorithm);
+        if (hash.addData(&f)) {
+            return hash.result();
+        }
+    }
+    return QByteArray();
+}
+
 void KijangPluginManager::loadPlugins()
 {
     QLoggingCategory plugin("plugin");
@@ -128,16 +230,17 @@ void KijangPluginManager::loadPlugins()
         }
     }
 
-    // Check if all required dependencies enabled
-    QList<QString> keys = m_enabledPlugins.keys();
-    QList<QPair<QString, QString>> priorList;
-    for (int i = 0; i < keys.length(); i++) {
-        // TODO: Check if required dependencies enabled
-    }
+    // TODO: Check if required dependencies enabled
     qInfo(plugin) << pluginFileCount << "plugins found," << pluginCount << "successfully loaded";
+    refreshPluginTable();
 }
 
-bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString>> priorList)
+void KijangPluginManager::refreshPluginTable()
+{
+    // TODO: Complete
+}
+
+bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString> > priorList)
 {
     QLoggingCategory plugin("plugin");
     if (!m_pluginPathList.contains(id)) {
@@ -146,6 +249,7 @@ bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QLis
     }
     if (m_enabledPlugins.contains(id)) {
         qInfo() << "Plugin ID" << id << "already enabled";
+        if (priorList.empty()) refreshPluginTable();
         return true;
     }
     QPluginLoader *loader = new QPluginLoader(m_pluginPathList.value(id));
@@ -213,10 +317,11 @@ bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QLis
     m_loaderList.insert(id, loader);
     m_enabledPlugins.insert(id, pluginMetadata);
     m_disabledPlugins.remove(id);
+    if (priorList.empty()) refreshPluginTable();
     return true;
 }
 
-bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QList<QPair<QString, QString>> priorList)
+bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QList<QPair<QString, QString> > priorList)
 {
     QLoggingCategory plugin("plugin");
     if (!m_pluginPathList.contains(id)) {
@@ -226,6 +331,7 @@ bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QLis
 
     if (!m_enabledPlugins.contains(id)) {
         qInfo(plugin) << "Plugin" << id << "already disabled";
+        if (priorList.empty()) refreshPluginTable();
         return true;
     }
 
@@ -256,6 +362,7 @@ bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QLis
     m_loaderList.remove(id);
     m_disabledPlugins.insert(id, m_enabledPlugins.value(id));
     m_enabledPlugins.remove(id);
+    if (priorList.empty()) refreshPluginTable();
     return true;
 }
 
@@ -277,15 +384,18 @@ bool KijangPluginManager::deletePlugin(QString id, bool disableDependants, bool 
         }
     }
 
-    if (m_disabledPlugins.contains(id)) m_disabledPlugins.remove(id);
     QFile pluginFile(m_pluginPathList.value(id));
     if (!pluginFile.exists()) {
         qWarning(plugin) << "File for plugin" << id << "does not exist, plugin marked as deleted";
+        if (m_disabledPlugins.contains(id)) m_disabledPlugins.remove(id);
+        refreshPluginTable();
         return true;
     }
 
     if (pluginFile.remove()) {
         qInfo(plugin) << "Plugin" << id << "removed";
+        if (m_disabledPlugins.contains(id)) m_disabledPlugins.remove(id);
+        refreshPluginTable();
         return true;
     } else {
         qWarning(plugin) << "Plugin" << id << "could not be deleted due to error" << pluginFile.errorString();

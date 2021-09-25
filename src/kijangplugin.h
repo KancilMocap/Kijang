@@ -49,8 +49,8 @@ public:
 
     virtual void allVariants(QMap<QString, QList<QVariant>> values) = 0;
     virtual void allObjects(QMap<QString, QList<QObject *>> values) = 0;
-    virtual void allVariantMaps(QMap<QString, QMap<QVariant, QVariant>> values) = 0;
-    virtual void allVariantObjectMaps(QMap<QString, QMap<QVariant, QObject *>> values) = 0;
+    virtual void allVariantMaps(QMap<QString, QMap<QString, QVariant>> values) = 0;
+    virtual void allVariantObjectMaps(QMap<QString, QMap<QString, QObject *>> values) = 0;
     virtual void allObjectMaps(QMap<QString, QMap<QObject *, QObject *>> values) = 0;
 
     // Public responses - Slots (Plugin wrapper)
@@ -65,8 +65,8 @@ public:
 
     virtual void pluginVariants(QString plugin, QList<QVariant> values) = 0;
     virtual void pluginObjects(QString plugin, QList<QObject *> values) = 0;
-    virtual void pluginVariantMaps(QString plugin, QMap<QVariant, QVariant> values) = 0;
-    virtual void pluginVariantObjectMaps(QString plugin, QMap<QVariant, QObject *> values) = 0;
+    virtual void pluginVariantMaps(QString plugin, QMap<QString, QVariant> values) = 0;
+    virtual void pluginVariantObjectMaps(QString plugin, QMap<QString, QObject *> values) = 0;
     virtual void pluginObjectMaps(QString plugin, QMap<QObject *, QObject *> values) = 0;
 
     // Data storage
@@ -76,12 +76,12 @@ public:
     virtual void addObject(int index, QObject *obj) = 0;
     virtual void removeObject(int index) = 0;
     virtual QList<QObject *> objects() = 0;
-    virtual void addVariantMapValue(QVariant key, QVariant value) = 0;
+    virtual void addVariantMapValue(QString key, QVariant value) = 0;
     virtual void removeVariantMapValue(QVariant key) = 0;
-    virtual QMap<QVariant, QVariant> variantMap() = 0;
-    virtual void addVariantObjectMapValue(QVariant key, QObject *value) = 0;
+    virtual QMap<QString, QVariant> variantMap() = 0;
+    virtual void addVariantObjectMapValue(QString key, QObject *value) = 0;
     virtual void removeVariantObjectMapValue(QVariant key) = 0;
-    virtual QMap<QVariant, QObject *> variantObjectMap() = 0;
+    virtual QMap<QString, QObject *> variantObjectMap() = 0;
     virtual void addObjectMapValue(QObject *key, QObject *value);
     virtual void removeObjectMapValue(QObject *key);
     virtual QMap<QObject *, QObject *> objectMap() = 0;
@@ -109,8 +109,8 @@ public:
 
     virtual void pluginVariantsUpdated(QString plugin, QList<QVariant> values) = 0;
     virtual void pluginObjectsUpdated(QString plugin, QList<QObject *> values) = 0;
-    virtual void pluginVariantMapUpdated(QString plugin, QMap<QVariant, QVariant> values) = 0;
-    virtual void pluginVariantObjectMapUpdated(QString plugin, QMap<QVariant, QObject *> values) = 0;
+    virtual void pluginVariantMapUpdated(QString plugin, QMap<QString, QVariant> values) = 0;
+    virtual void pluginVariantObjectMapUpdated(QString plugin, QMap<QString, QObject *> values) = 0;
     virtual void pluginObjectMapUpdated(QString plugin, QMap<QObject *, QObject *> values) = 0;
 
     // Public responses - Slots (Plugin manager)

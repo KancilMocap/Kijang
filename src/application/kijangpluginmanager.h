@@ -6,9 +6,14 @@
 #include <QTextStream>
 #include <QFile>
 #include <QDir>
-#include <QPluginLoader>
-#include <QLoggingCategory>
 #include <QPair>
+#include <QPluginLoader>
+#include <QGuiApplication>
+#include <QLoggingCategory>
+#include <QCryptographicHash>
+#include <QMessageBox>
+#include <QErrorMessage>
+#include <QFileDialog>
 #include "../kijangplugin.h"
 #include "kijangpluginwrapper.h"
 
@@ -20,7 +25,12 @@ public:
     ~KijangPluginManager();
     static QString pluginDirPath;
     static QString pluginDataPath;
+
+    Q_INVOKABLE void openImportDialog();
+    static QByteArray fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm);
+
     void loadPlugins();
+    void refreshPluginTable();
     bool enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString>> priorList=QList<QPair<QString, QString>>());
     bool disablePlugin(QString id, bool disableDependants, QList<QPair<QString, QString>> priorList=QList<QPair<QString, QString>>());
     bool deletePlugin(QString id, bool disableDependants, bool deleteEnabled);
@@ -54,8 +64,8 @@ signals:
 
     void pluginVariantsUpdated(QString plugin, QList<QVariant> values);
     void pluginObjectsUpdated(QString plugin, QList<QObject *> values);
-    void pluginVariantMapUpdated(QString plugin, QMap<QVariant, QVariant> values);
-    void pluginVariantObjectMapUpdated(QString plugin, QMap<QVariant, QObject *> values);
+    void pluginVariantMapUpdated(QString plugin, QMap<QString, QVariant> values);
+    void pluginVariantObjectMapUpdated(QString plugin, QMap<QString, QObject *> values);
     void pluginObjectMapUpdated(QString plugin, QMap<QObject *, QObject *> values);
 
 private:
