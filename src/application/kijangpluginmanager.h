@@ -12,10 +12,11 @@
 #include <QLoggingCategory>
 #include <QCryptographicHash>
 #include <QMessageBox>
-#include <QErrorMessage>
 #include <QFileDialog>
+#include "../input/kijanginputmanager.h"
+#include "../network/kijangnetworkmanager.h"
 #include "../kijangplugin.h"
-#include "kijangpluginwrapper.h"
+#include "../kijangpluginwrapper.h"
 
 class KijangPluginManager : public QObject
 {
@@ -40,6 +41,10 @@ public:
     const QMap<QString, KijangPluginMetadata> &enabledPlugins() const;
     const QMap<QString, KijangPluginMetadata> &disabledPlugins() const;
     const QMap<QString, QString> &pluginPathList() const;
+    const QMap<QString, KijangPlugin *> &pluginObjectList() const;
+
+private:
+    void connectWrapperFunctions(KijangPluginWrapper *wrapper);
 
 signals:
     void pluginAdded(QString plugin, KijangPluginMetadata metadata);
@@ -62,15 +67,58 @@ signals:
     void pluginModuleHandlerUpdated(QString plugin, KijangModuleHandler *handler);
     void pluginModuleHandlerRemoved(QString plugin, KijangModuleHandler *handler);
 
-    void pluginVariantsUpdated(QString plugin, QList<QVariant> values);
-    void pluginObjectsUpdated(QString plugin, QList<QObject *> values);
-    void pluginVariantMapUpdated(QString plugin, QMap<QString, QVariant> values);
-    void pluginVariantObjectMapUpdated(QString plugin, QMap<QString, QObject *> values);
-    void pluginObjectMapUpdated(QString plugin, QMap<QObject *, QObject *> values);
+    void pluginEvent(QString plugin, QList<QVariant> event);
+    void pluginFatal(QString plugin, QString error);
+
+public slots:
+    // Received from plugin wrappers
+    // Events - Signals (KijangPlugin)
+    void forwardAudioInputAdded(QString src, AudioInput *input);
+    void forwardAudioInputUpdated(QString src, AudioInput *input);
+    void forwardAudioInputRemoved(QString src, AudioInput *input);
+    void forwardVideoInputAdded(QString src, VideoInput *input);
+    void forwardVideoInputUpdated(QString src, VideoInput *input);
+    void forwardVideoInputRemoved(QString src, VideoInput *input);
+    void forwardMotionInputAdded(QString src, MotionInput *input);
+    void forwardMotionInputUpdated(QString src, MotionInput *input);
+    void forwardMotionInputRemoved(QString src, MotionInput *input);
+
+    void forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface);
+    void forwardUdpListenerInterfaceUpdated(QString src, UdpListenerInterface *interface);
+    void forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface);
+    void forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler);
+    void forwardModuleHandlerUpdated(QString src, KijangModuleHandler *handler);
+    void forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler);
+
+    // Request all plugins - Signals (QString src, KijangPlugin)
+    void forwardRequestAllMetadata(QString src);
+    void forwardRequestAllPlugins(QString src);
+
+    void forwardRequestAllAudioInput(QString src);
+    void forwardRequestAllMotionInput(QString src);
+    void forwardRequestAllVideoInput(QString src);
+
+    void forwardRequestAllUdpListener(QString src);
+    void forwardRequestAllModuleHandlers(QString src);
+
+    // Request specific plugin  - Signals (QString src, KijangPlugin)
+    void forwardRequestPluginMetadata(QString src, QString plugin);
+
+    void forwardRequestPluginAudioInput(QString src, QString plugin);
+    void forwardRequestPluginMotionInput(QString src, QString plugin);
+    void forwardRequestPluginVideoInput(QString src, QString plugin);
+
+    void forwardRequestPluginUdpListener(QString src, QString plugin);
+    void forwardRequestPluginModuleHandlers(QString src, QString plugin);
+
+    // Special events (QString src, KijangPlugin)
+    void forwardEventSignal(QString src, QList<QVariant> values);
+    void forwardFatalSignal(QString src, QString error=nullptr);
 
 private:
     bool pluginInStartList(QString plugin);
     QList<QString> startEnabledPlugins; // Loaded at start of program
+    QMap<QString, KijangPlugin *> m_pluginObjectList; // For enabled plugins only
     QMap<QString, KijangPluginWrapper *> m_wrapperList; // For enabled plugins only
     QMap<QString, QPluginLoader *> m_loaderList; // For enabled plugins only
     QMap<QString, QString> m_pluginPathList; // For both enabled and disabled plugins

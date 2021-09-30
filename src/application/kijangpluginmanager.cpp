@@ -69,8 +69,8 @@ void KijangPluginManager::openImportDialog()
 #endif
     libraryFiles += ")";
     if (!canImport) {
-        QErrorMessage errorBox;
-        errorBox.showMessage("Sorry! Your operating system is not supported. Plugins could not be imported.");
+        QWidget tempWidget;
+        QMessageBox::critical(&tempWidget, "Import error", "Sorry! Your operating system is not supported. Plugins could not be imported.");
         return;
     }
 
@@ -80,23 +80,20 @@ void KijangPluginManager::openImportDialog()
     QPluginLoader *loader = new QPluginLoader(filePath);
     if (!loader->load()) {
         qWarning(plugin) << "Invalid library file" << filePath << ", unable to import plugin";
-        // FIXME: QErrorMessage not showing
-        QErrorMessage errorBox;
-        errorBox.showMessage("The plugin library appears to be invalid.");
+        QWidget tempWidget;
+        QMessageBox::critical(&tempWidget, "Import error", "The plugin library appears to be invalid.");
         return;
     }
 
     KijangPlugin* kijangPlugin = qobject_cast<KijangPlugin*>(loader->instance());
     if (!kijangPlugin) {
         qWarning(plugin) << "Library file" << filePath << "could not be cast to a KijangPlugin instance, unable to import plugin";
-        // FIXME: QErrorMessage not showing
-        QErrorMessage errorBox;
-        errorBox.showMessage("The plugin library appears to be invalid.");
+        QWidget tempWidget;
+        QMessageBox::critical(&tempWidget, "Import error", "The plugin library appears to be invalid.");
         return;
     }
 
     KijangPluginMetadata pluginMetadata = kijangPlugin->metadata();
-    QString loaderName = loader->fileName();
     loader->unload();
     loader->deleteLater();
     QByteArray sha256Sum = fileChecksum(filePath, QCryptographicHash::Sha256);
@@ -110,13 +107,54 @@ void KijangPluginManager::openImportDialog()
     metadataInfo << "Developer: " + pluginMetadata.developerName + " <" + pluginMetadata.developerEmail + ">";
     metadataInfo << "Site: " + pluginMetadata.pluginSite;
     metadataInfo << "SHA256: " + sha256Sum.toHex();
-    QMessageBox msgBox;
+    QWidget tempWidget;
+    QMessageBox msgBox(&tempWidget);
     msgBox.setText(title);
     msgBox.setInformativeText(metadataInfo.join("\n"));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     int ret = msgBox.exec();
     if (ret | QMessageBox::Yes) {
+        // Check if plugin already exists
+        if (m_disabledPlugins.contains(pluginMetadata.pluginID) || m_enabledPlugins.contains(pluginMetadata.pluginID)) {
+            bool pluginEnabled = m_enabledPlugins.contains(pluginMetadata.pluginID);
+            QString oldVersion = pluginEnabled ? m_enabledPlugins.value(pluginMetadata.pluginID).pluginVersion : m_disabledPlugins.value(pluginMetadata.pluginID).pluginVersion;
+            QWidget tempWidget2;
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::critical(&tempWidget2, "Duplicate plugin", "Another plugin with the same ID (version " + oldVersion + ") already exists. Would you like to replace the old plugin with the new one?",
+                                          QMessageBox::StandardButton::Yes | QMessageBox::StandardButton::No);
+            if (reply == QMessageBox::StandardButton::Yes) {
+                if (pluginEnabled) {
+                    QWidget tempWidget3; // Pop ups may get annoying, may need better method of dealing with it
+                    QMessageBox::StandardButton reply2;
+                    reply2 = QMessageBox::critical(&tempWidget3, "Duplicate plugin", "The plugin is currently enabled, and it would need to be disabled before it can be updated. Would you like to disable the plugin?",
+                                          QMessageBox::StandardButton::Yes | QMessageBox::StandardButton::No);
+
+                    if (reply2 == QMessageBox::StandardButton::Yes) {
+                        if (!disablePlugin(pluginMetadata.pluginID, true)) {
+                            qWarning(plugin) << "Unable to remove old plugin" << pluginMetadata.pluginID << "as old plugin could not be disabled";
+                            QWidget tempWidget4;
+                            QMessageBox::critical(&tempWidget4, "Duplicate plugin", "The current plugin could not be disabled. Please view the logs for more information.");
+                            return;
+                        }
+                    } else {
+                        qDebug(plugin) << "Plugin installation will not continue as user elected to not disable plugin before update";
+                        return;
+                    }
+                }
+                if (!deletePlugin(pluginMetadata.pluginID, true, true)) {
+                    qWarning(plugin) << "Unable to delete old plugin" << pluginMetadata.pluginID;
+                    QWidget tempWidget5;
+                    QMessageBox::critical(&tempWidget5, "Duplicate plugin", "The current plugin could not be deleted Please view the logs for more information.");
+                    return;
+                }
+
+            } else {
+                qDebug(plugin) << "Duplicte plugin found while importing plugin" << pluginMetadata.pluginID << ", plugin will not be imported";
+                return;
+            }
+        }
+
         QFile originalFile(filePath);
         QFileInfo fileInfo(originalFile);
         QString fileName = fileInfo.fileName();
@@ -133,6 +171,7 @@ void KijangPluginManager::openImportDialog()
 
         if (originalFile.copy(QFileInfo(targetFile).absoluteFilePath())) {
             m_disabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
+            m_pluginPathList.insert(pluginMetadata.pluginID, QFileInfo(targetFile).absoluteFilePath());
             qInfo(plugin) << "Plugin " << pluginMetadata.pluginID << " successfully imported";
             refreshPluginTable();
         } else {
@@ -214,9 +253,12 @@ void KijangPluginManager::loadPlugins()
             if (pluginInStartList(pluginMetadata.pluginID)) {
                 // Direct enable without going through enablePlugin, might cause weird issues
                 KijangPluginWrapper *wrapper = new KijangPluginWrapper(this);
-                wrapper->setPlugin(kijangPlugin);
+                wrapper->setPlugin(pluginMetadata.pluginID);
+                connectWrapperFunctions(wrapper);
+                kijangPlugin->setWrapper(wrapper);
                 m_enabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
                 m_loaderList.insert(pluginMetadata.pluginID, loader);
+                m_pluginObjectList.insert(pluginMetadata.pluginID, kijangPlugin);
                 m_wrapperList.insert(pluginMetadata.pluginID, wrapper);
             } else {
                 m_disabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
@@ -312,12 +354,17 @@ bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QLis
     }
 
     KijangPluginWrapper *wrapper = new KijangPluginWrapper(this);
-    wrapper->setPlugin(kijangPlugin);
+    wrapper->setPlugin(id);
+    connectWrapperFunctions(wrapper);
+    kijangPlugin->setWrapper(wrapper);
+    m_pluginObjectList.insert(id, kijangPlugin);
     m_wrapperList.insert(id, wrapper);
     m_loaderList.insert(id, loader);
     m_enabledPlugins.insert(id, pluginMetadata);
     m_disabledPlugins.remove(id);
     if (priorList.empty()) refreshPluginTable();
+    emit pluginAdded(id, kijangPlugin->metadata());
+    qInfo(plugin) << "Plugin" << id << "successfully enabled";
     return true;
 }
 
@@ -355,14 +402,18 @@ bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QLis
         }
     }
     // Disable plugin
+    m_pluginObjectList.remove(id);
+    m_wrapperList.value(id)->disconnect();
     m_wrapperList.value(id)->deleteLater();
     m_wrapperList.remove(id);
     m_loaderList.value(id)->unload();
     m_loaderList.value(id)->deleteLater();
     m_loaderList.remove(id);
+    emit pluginRemoved(id, m_enabledPlugins.value(id));
     m_disabledPlugins.insert(id, m_enabledPlugins.value(id));
     m_enabledPlugins.remove(id);
     if (priorList.empty()) refreshPluginTable();
+    qInfo(plugin) << "Plugin" << id << "successfully disabled";
     return true;
 }
 
@@ -433,8 +484,231 @@ bool KijangPluginManager::pluginInStartList(QString plugin)
     return false;
 }
 
+const QMap<QString, KijangPlugin *> &KijangPluginManager::pluginObjectList() const
+{
+    return m_pluginObjectList;
+}
+
+void KijangPluginManager::connectWrapperFunctions(KijangPluginWrapper *wrapper)
+{
+    connect(wrapper, &KijangPluginWrapper::forwardAudioInputAdded, this, &KijangPluginManager::forwardAudioInputAdded);
+    connect(wrapper, &KijangPluginWrapper::forwardAudioInputUpdated, this, &KijangPluginManager::forwardAudioInputUpdated);
+    connect(wrapper, &KijangPluginWrapper::forwardAudioInputRemoved, this, &KijangPluginManager::forwardAudioInputRemoved);
+    connect(wrapper, &KijangPluginWrapper::forwardVideoInputAdded, this, &KijangPluginManager::forwardVideoInputAdded);
+    connect(wrapper, &KijangPluginWrapper::forwardVideoInputUpdated, this, &KijangPluginManager::forwardVideoInputUpdated);
+    connect(wrapper, &KijangPluginWrapper::forwardVideoInputRemoved, this, &KijangPluginManager::forwardVideoInputRemoved);
+    connect(wrapper, &KijangPluginWrapper::forwardMotionInputAdded, this, &KijangPluginManager::forwardMotionInputAdded);
+    connect(wrapper, &KijangPluginWrapper::forwardMotionInputUpdated, this, &KijangPluginManager::forwardMotionInputUpdated);
+    connect(wrapper, &KijangPluginWrapper::forwardMotionInputRemoved, this, &KijangPluginManager::forwardMotionInputRemoved);
+
+    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceAdded, this, &KijangPluginManager::forwardUdpListenerInterfaceAdded);
+    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceUpdated, this, &KijangPluginManager::forwardUdpListenerInterfaceUpdated);
+    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceRemoved, this, &KijangPluginManager::forwardUdpListenerInterfaceRemoved);
+    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerAdded, this, &KijangPluginManager::forwardModuleHandlerAdded);
+    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerUpdated, this, &KijangPluginManager::forwardModuleHandlerUpdated);
+    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerRemoved, this, &KijangPluginManager::forwardModuleHandlerRemoved);
+}
+
 const QMap<QString, QString> &KijangPluginManager::pluginPathList() const
 {
     return m_pluginPathList;
 }
 
+void KijangPluginManager::forwardAudioInputAdded(QString src, AudioInput *input) {
+    // TODO: Handle by manager
+    emit pluginAudioInputAdded(src, input);
+}
+
+void KijangPluginManager::forwardAudioInputUpdated(QString src, AudioInput *input) {
+    // TODO: Handle by manager
+    emit pluginAudioInputUpdated(src, input);
+}
+
+void KijangPluginManager::forwardAudioInputRemoved(QString src, AudioInput *input) {
+    // TODO: Handle by manager
+    emit pluginAudioInputRemoved(src, input);
+}
+
+void KijangPluginManager::forwardVideoInputAdded(QString src, VideoInput *input) {
+    // TODO: Handle by manager
+    emit pluginVideoInputAdded(src, input);
+}
+
+void KijangPluginManager::forwardVideoInputUpdated(QString src, VideoInput *input) {
+    // TODO: Handle by manager
+    emit pluginVideoInputUpdated(src, input);
+}
+
+void KijangPluginManager::forwardVideoInputRemoved(QString src, VideoInput *input) {
+    // TODO: Handle by manager
+    emit pluginVideoInputRemoved(src, input);
+}
+
+void KijangPluginManager::forwardMotionInputAdded(QString src, MotionInput *input) {
+    // TODO: Handle by manager
+    emit pluginMotionInputAdded(src, input);
+}
+
+void KijangPluginManager::forwardMotionInputUpdated(QString src, MotionInput *input) {
+    // TODO: Handle by manager
+    emit pluginMotionInputUpdated(src, input);
+}
+
+void KijangPluginManager::forwardMotionInputRemoved(QString src, MotionInput *input) {
+    // TODO: Handle by manager
+    emit pluginMotionInputRemoved(src, input);
+}
+
+void KijangPluginManager::forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface) {
+    // TODO: Handle by manager
+    emit pluginUdpListenerInterfaceAdded(src, interface);
+}
+
+void KijangPluginManager::forwardUdpListenerInterfaceUpdated(QString src, UdpListenerInterface *interface) {
+    // TODO: Handle by manager
+    emit pluginUdpListenerInterfaceUpdated(src, interface);
+}
+
+void KijangPluginManager::forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) {
+    // TODO: Handle by manager
+    emit pluginUdpListenerInterfaceRemoved(src, interface);
+}
+
+void KijangPluginManager::forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler) {
+    // TODO: Handle by manager
+    emit pluginModuleHandlerAdded(src, handler);
+}
+
+void KijangPluginManager::forwardModuleHandlerUpdated(QString src, KijangModuleHandler *handler) {
+    // TODO: Handle by manager
+    emit pluginModuleHandlerUpdated(src, handler);
+}
+
+void KijangPluginManager::forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler) {
+    // TODO: Handle by manager
+    emit pluginModuleHandlerRemoved(src, handler);
+}
+
+void KijangPluginManager::forwardRequestAllMetadata(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    m_pluginObjectList.value(src)->allMetadata(m_enabledPlugins);
+}
+
+void KijangPluginManager::forwardRequestAllPlugins(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    m_pluginObjectList.value(src)->allObjects(m_pluginObjectList);
+}
+
+void KijangPluginManager::forwardRequestAllAudioInput(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    QMap<QString, QList<AudioInput *>> response;
+    for (int i = 0; i < m_pluginObjectList.size(); i++) {
+        KijangPlugin *currentPlugin = m_pluginObjectList.value(src);
+        QString id = currentPlugin->metadata().pluginID;
+        if (src == id) continue;
+        response.insert(id, currentPlugin->audioInputs());
+    }
+    m_pluginObjectList.value(src)->allAudioInputs(response);
+}
+
+void KijangPluginManager::forwardRequestAllMotionInput(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    QMap<QString, QList<MotionInput *>> response;
+    for (int i = 0; i < m_pluginObjectList.size(); i++) {
+        KijangPlugin *currentPlugin = m_pluginObjectList.value(src);
+        QString id = currentPlugin->metadata().pluginID;
+        if (src == id) continue;
+        response.insert(id, currentPlugin->motionInputs());
+    }
+    m_pluginObjectList.value(src)->allMotionInputs(response);
+}
+
+void KijangPluginManager::forwardRequestAllVideoInput(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    QMap<QString, QList<VideoInput *>> response;
+    for (int i = 0; i < m_pluginObjectList.size(); i++) {
+        KijangPlugin *currentPlugin = m_pluginObjectList.value(src);
+        QString id = currentPlugin->metadata().pluginID;
+        if (src == id) continue;
+        response.insert(id, currentPlugin->videoInputs());
+    }
+    m_pluginObjectList.value(src)->allVideoInputs(response);
+}
+
+void KijangPluginManager::forwardRequestAllUdpListener(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    QMap<QString, QList<UdpListenerInterface *>> response;
+    for (int i = 0; i < m_pluginObjectList.size(); i++) {
+        KijangPlugin *currentPlugin = m_pluginObjectList.value(src);
+        QString id = currentPlugin->metadata().pluginID;
+        if (src == id) continue;
+        response.insert(id, currentPlugin->udpListeners());
+    }
+    m_pluginObjectList.value(src)->allUdpListenerInterfaces(response);
+}
+
+void KijangPluginManager::forwardRequestAllModuleHandlers(QString src) {
+    if (!m_enabledPlugins.contains(src)) return;
+    QMap<QString, QList<KijangModuleHandler *>> response;
+    for (int i = 0; i < m_pluginObjectList.size(); i++) {
+        KijangPlugin *currentPlugin = m_pluginObjectList.value(src);
+        QString id = currentPlugin->metadata().pluginID;
+        if (src == id) continue;
+        response.insert(id, currentPlugin->moduleHandlers());
+    }
+    m_pluginObjectList.value(src)->allModuleHandlers(response);
+}
+
+void KijangPluginManager::forwardRequestPluginMetadata(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginMetadata(plugin, m_pluginObjectList.value(plugin)->metadata());
+}
+
+void KijangPluginManager::forwardRequestPluginAudioInput(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginAudioInputs(plugin, m_pluginObjectList.value(plugin)->audioInputs());
+}
+
+void KijangPluginManager::forwardRequestPluginMotionInput(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginMotionInputs(plugin, m_pluginObjectList.value(plugin)->motionInputs());
+}
+
+void KijangPluginManager::forwardRequestPluginVideoInput(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginVideoInputs(plugin, m_pluginObjectList.value(plugin)->videoInputs());
+}
+
+void KijangPluginManager::forwardRequestPluginUdpListener(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginUdpListenerInterfaces(plugin, m_pluginObjectList.value(plugin)->udpListeners());
+}
+
+void KijangPluginManager::forwardRequestPluginModuleHandlers(QString src, QString plugin) {
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
+    m_pluginObjectList.value(src)->pluginModuleHandlers(plugin, m_pluginObjectList.value(plugin)->moduleHandlers());
+}
+
+void KijangPluginManager::forwardEventSignal(QString src, QList<QVariant> values) {
+    emit pluginEvent(src, values);
+}
+
+void KijangPluginManager::forwardFatalSignal(QString src, QString error) {
+    emit pluginFatal(src, error);
+    QLoggingCategory plugin("plugin");
+    if (disablePlugin(src, true)) {
+        qInfo(plugin) << "Plugin" << src << "disabled after fatal error" << error << "emitted";
+        QWidget tempWidget;
+        QMessageBox::critical(&tempWidget, "Plugin error", "An error has occurred in the plugin " + src + " and it has been disabled. Please check the logs for more information.");
+    } else {
+        qCritical(plugin) << "Plugin" << src << "could not be disabled after error" << error << "emitted, plugins may not work as expected";
+        QWidget tempWidget;
+        QMessageBox::critical(&tempWidget, "Plugin error", "An error has occurred in the plugin " + src + " but it could not be disabled. The application may not function as intended.");
+    }
+}

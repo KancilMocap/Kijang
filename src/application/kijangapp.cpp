@@ -55,12 +55,15 @@ int KijangApp::run(int argc, char **argv)
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
+
     }, Qt::QueuedConnection);
     m_engine->load(url);
 
     // Initialises servers if needed
     m_inputManager.start();
     // Serial manager and network manager would have been automatically started from QML
+    // Start plugin manager
+    m_pluginManager.loadPlugins();
 
     return app.exec();
 }
