@@ -5,7 +5,9 @@
 
 class MotionInput
 {
+    Q_DISABLE_COPY(MotionInput)
 public:
+    explicit MotionInput() = default;
 
 signals:
 

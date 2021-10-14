@@ -6,7 +6,9 @@
 #include <QRunnable>
 #include <QThread>
 #include <QTcpSocket>
+#include <QEventLoop>
 #include <QLoggingCategory>
+#include "../../inc/kijangProtocol/kijangprotocol.h"
 
 class CommunicationClient : public QObject, public QRunnable
 {
@@ -18,14 +20,22 @@ public:
     static int INITIAL_TIMEOUT;
 
 signals:
+    void terminated(QString message);
 
+public slots:
+    void stateChanged(QAbstractSocket::SocketState socketState);
 
     // QRunnable interface
 public:
     void run() Q_DECL_OVERRIDE;
 
+    quint32 clientID() const;
+    void setClientID(quint32 newClientID);
+
 private:
+    bool connected;
     qintptr handle;
+    quint32 m_clientID;
     QTcpSocket socket;
 };
 

@@ -6,7 +6,9 @@
 
 class AudioInput
 {
+    Q_DISABLE_COPY(AudioInput)
 public:
+    explicit AudioInput() = default;
     virtual void audioStart() = 0;
     virtual void audioStop() = 0;
     virtual const QString &audioErrorString() const = 0;

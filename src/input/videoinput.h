@@ -5,7 +5,9 @@
 
 class VideoInput
 {
+    Q_DISABLE_COPY(VideoInput)
 public:
+    explicit VideoInput() = default;
 
 };
 

@@ -32,7 +32,7 @@ public:
 
     void loadPlugins();
     void refreshPluginTable();
-    bool enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString>> priorList=QList<QPair<QString, QString>>());
+    bool enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString> > priorList=QList<QPair<QString, QString>>());
     bool disablePlugin(QString id, bool disableDependants, QList<QPair<QString, QString>> priorList=QList<QPair<QString, QString>>());
     bool deletePlugin(QString id, bool disableDependants, bool deleteEnabled);
 
@@ -43,28 +43,28 @@ public:
     const QMap<QString, QString> &pluginPathList() const;
     const QMap<QString, KijangPlugin *> &pluginObjectList() const;
 
+    void setInputManager(KijangInputManager *newInputManager);
+    void setNetworkManager(KijangNetworkManager *newNetworkManager);
+
 private:
     void connectWrapperFunctions(KijangPluginWrapper *wrapper);
+    void dagDfsCheck(QString v, QMap<QString, bool> &discovered, QMap<QString, int> &departure, QStringList &listToDisable, int &time, bool &missingChild);
+    void disablePluginAfterConfirmation(QString id);
 
 signals:
     void pluginAdded(QString plugin, KijangPluginMetadata metadata);
     void pluginRemoved(QString plugin, KijangPluginMetadata metadata);
 
     void pluginAudioInputAdded(QString plugin, AudioInput *input);
-    void pluginAudioInputUpdated(QString plugin, AudioInput *input);
     void pluginAudioInputRemoved(QString plugin, AudioInput *input);
     void pluginVideoInputAdded(QString plugin, VideoInput *input);
-    void pluginVideoInputUpdated(QString plugin, VideoInput *input);
     void pluginVideoInputRemoved(QString plugin, VideoInput *input);
     void pluginMotionInputAdded(QString plugin, MotionInput *input);
-    void pluginMotionInputUpdated(QString plugin, MotionInput *input);
     void pluginMotionInputRemoved(QString plugin, MotionInput *input);
 
     void pluginUdpListenerInterfaceAdded(QString plugin, UdpListenerInterface *interface);
-    void pluginUdpListenerInterfaceUpdated(QString plugin, UdpListenerInterface *interface);
     void pluginUdpListenerInterfaceRemoved(QString plugin, UdpListenerInterface *interface);
     void pluginModuleHandlerAdded(QString plugin, KijangModuleHandler *handler);
-    void pluginModuleHandlerUpdated(QString plugin, KijangModuleHandler *handler);
     void pluginModuleHandlerRemoved(QString plugin, KijangModuleHandler *handler);
 
     void pluginEvent(QString plugin, QList<QVariant> event);
@@ -74,20 +74,15 @@ public slots:
     // Received from plugin wrappers
     // Events - Signals (KijangPlugin)
     void forwardAudioInputAdded(QString src, AudioInput *input);
-    void forwardAudioInputUpdated(QString src, AudioInput *input);
     void forwardAudioInputRemoved(QString src, AudioInput *input);
     void forwardVideoInputAdded(QString src, VideoInput *input);
-    void forwardVideoInputUpdated(QString src, VideoInput *input);
     void forwardVideoInputRemoved(QString src, VideoInput *input);
     void forwardMotionInputAdded(QString src, MotionInput *input);
-    void forwardMotionInputUpdated(QString src, MotionInput *input);
     void forwardMotionInputRemoved(QString src, MotionInput *input);
 
     void forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface);
-    void forwardUdpListenerInterfaceUpdated(QString src, UdpListenerInterface *interface);
     void forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface);
     void forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler);
-    void forwardModuleHandlerUpdated(QString src, KijangModuleHandler *handler);
     void forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler);
 
     // Request all plugins - Signals (QString src, KijangPlugin)
@@ -124,6 +119,8 @@ private:
     QMap<QString, QString> m_pluginPathList; // For both enabled and disabled plugins
     QMap<QString, KijangPluginMetadata> m_enabledPlugins;
     QMap<QString, KijangPluginMetadata> m_disabledPlugins;
+    KijangInputManager *m_inputManager;
+    KijangNetworkManager *m_networkManager;
 
 };
 

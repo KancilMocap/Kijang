@@ -20,20 +20,15 @@ signals:
     // Forwarded signals from plugin to server
     // Events - Signals (KijangPlugin)
     void forwardAudioInputAdded(QString src, AudioInput *input);
-    void forwardAudioInputUpdated(QString src, AudioInput *input);
     void forwardAudioInputRemoved(QString src, AudioInput *input);
     void forwardVideoInputAdded(QString src, VideoInput *input);
-    void forwardVideoInputUpdated(QString src, VideoInput *input);
     void forwardVideoInputRemoved(QString src, VideoInput *input);
     void forwardMotionInputAdded(QString src, MotionInput *input);
-    void forwardMotionInputUpdated(QString src, MotionInput *input);
     void forwardMotionInputRemoved(QString src, MotionInput *input);
 
     void forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface);
-    void forwardUdpListenerInterfaceUpdated(QString src, UdpListenerInterface *interface);
     void forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface);
     void forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler);
-    void forwardModuleHandlerUpdated(QString src, KijangModuleHandler *handler);
     void forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler);
 
     // Request all plugins - Signals (QString src, KijangPlugin)
@@ -66,20 +61,15 @@ public slots:
     // Forwarded signals from plugin to server
     // Events - Signals (KijangPlugin)
     void audioInputAdded(AudioInput *input);
-    void audioInputUpdated(AudioInput *input);
     void audioInputRemoved(AudioInput *input);
     void videoInputAdded(VideoInput *input);
-    void videoInputUpdated(VideoInput *input);
     void videoInputRemoved(VideoInput *input);
     void motionInputAdded(MotionInput *input);
-    void motionInputUpdated(MotionInput *input);
     void motionInputRemoved(MotionInput *input);
 
     void udpListenerInterfaceAdded(UdpListenerInterface *interface);
-    void udpListenerInterfaceUpdated(UdpListenerInterface *interface);
     void udpListenerInterfaceRemoved(UdpListenerInterface *interface);
     void moduleHandlerAdded(KijangModuleHandler *handler);
-    void moduleHandlerUpdated(KijangModuleHandler *handler);
     void moduleHandlerRemoved(KijangModuleHandler *handler);
 
     // Request all plugins - Signals (KijangPlugin)

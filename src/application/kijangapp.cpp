@@ -63,6 +63,8 @@ int KijangApp::run(int argc, char **argv)
     m_inputManager.start();
     // Serial manager and network manager would have been automatically started from QML
     // Start plugin manager
+    m_pluginManager.setInputManager(&m_inputManager);
+    m_pluginManager.setNetworkManager(&m_networkManager);
     m_pluginManager.loadPlugins();
 
     return app.exec();

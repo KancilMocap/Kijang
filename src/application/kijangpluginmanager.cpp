@@ -251,7 +251,7 @@ void KijangPluginManager::loadPlugins()
             }
 
             if (pluginInStartList(pluginMetadata.pluginID)) {
-                // Direct enable without going through enablePlugin, might cause weird issues
+                // Direct enable without going through enablePlugin, will verify later
                 KijangPluginWrapper *wrapper = new KijangPluginWrapper(this);
                 wrapper->setPlugin(pluginMetadata.pluginID);
                 connectWrapperFunctions(wrapper);
@@ -272,8 +272,41 @@ void KijangPluginManager::loadPlugins()
         }
     }
 
-    // TODO: Check if required dependencies enabled
-    qInfo(plugin) << pluginFileCount << "plugins found," << pluginCount << "successfully loaded";
+    // TODO: Check if required dependencies enabled as well as for circular dependencies
+    // Implementation of DAG check https://www.techiedelight.com/check-given-digraph-dag-directed-acyclic-graph-not/ via augmented DFS
+    QMap<QString, bool> discovered;
+    QMap<QString, int> departure;
+    QStringList listToDisable;
+    int time = 0;
+    QList<QString> keyList = m_enabledPlugins.keys();
+    QList<QString> circularPlugins;
+    for (int i = 0; i < keyList.size(); i++) {
+        if (!discovered.contains(keyList.at(i))) {
+            bool childMissing = false;
+            dagDfsCheck(keyList.at(i), discovered, departure, listToDisable, time, childMissing);
+        }
+    }
+
+    for (int i = 0; i < keyList.size(); i++) {
+        KijangPluginMetadata metadata = m_enabledPlugins.value(keyList.at(i));
+        for (const QString &j: metadata.dependencies) {
+            if (departure.value(keyList.at(i)) <= departure.value(j)) {
+                // Circular dependency, so disable either one will do
+                // j is used as it is more convenient (one less function call)
+                circularPlugins.append(j);
+                break;
+            }
+        }
+    }
+
+    // Disable all circular plugins
+    for (int i = 0; i < circularPlugins.size(); i++) disablePlugin(circularPlugins.at(i), true);
+    // Disable remaining plugins manually in listToDisable
+    for (int i = 0; i < listToDisable.size(); i++) {
+        disablePluginAfterConfirmation(listToDisable.at(i));
+    }
+
+    qInfo(plugin) << pluginFileCount << "plugins found," << pluginCount << "loaded," << m_enabledPlugins.size() << "remain after plugins with circular dependencies and missing dependencies disabled";
     refreshPluginTable();
 }
 
@@ -402,16 +435,7 @@ bool KijangPluginManager::disablePlugin(QString id, bool disableDependants, QLis
         }
     }
     // Disable plugin
-    m_pluginObjectList.remove(id);
-    m_wrapperList.value(id)->disconnect();
-    m_wrapperList.value(id)->deleteLater();
-    m_wrapperList.remove(id);
-    m_loaderList.value(id)->unload();
-    m_loaderList.value(id)->deleteLater();
-    m_loaderList.remove(id);
-    emit pluginRemoved(id, m_enabledPlugins.value(id));
-    m_disabledPlugins.insert(id, m_enabledPlugins.value(id));
-    m_enabledPlugins.remove(id);
+    disablePluginAfterConfirmation(id);
     if (priorList.empty()) refreshPluginTable();
     qInfo(plugin) << "Plugin" << id << "successfully disabled";
     return true;
@@ -484,6 +508,16 @@ bool KijangPluginManager::pluginInStartList(QString plugin)
     return false;
 }
 
+void KijangPluginManager::setNetworkManager(KijangNetworkManager *newNetworkManager)
+{
+    m_networkManager = newNetworkManager;
+}
+
+void KijangPluginManager::setInputManager(KijangInputManager *newInputManager)
+{
+    m_inputManager = newInputManager;
+}
+
 const QMap<QString, KijangPlugin *> &KijangPluginManager::pluginObjectList() const
 {
     return m_pluginObjectList;
@@ -492,21 +526,67 @@ const QMap<QString, KijangPlugin *> &KijangPluginManager::pluginObjectList() con
 void KijangPluginManager::connectWrapperFunctions(KijangPluginWrapper *wrapper)
 {
     connect(wrapper, &KijangPluginWrapper::forwardAudioInputAdded, this, &KijangPluginManager::forwardAudioInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardAudioInputUpdated, this, &KijangPluginManager::forwardAudioInputUpdated);
     connect(wrapper, &KijangPluginWrapper::forwardAudioInputRemoved, this, &KijangPluginManager::forwardAudioInputRemoved);
     connect(wrapper, &KijangPluginWrapper::forwardVideoInputAdded, this, &KijangPluginManager::forwardVideoInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardVideoInputUpdated, this, &KijangPluginManager::forwardVideoInputUpdated);
     connect(wrapper, &KijangPluginWrapper::forwardVideoInputRemoved, this, &KijangPluginManager::forwardVideoInputRemoved);
     connect(wrapper, &KijangPluginWrapper::forwardMotionInputAdded, this, &KijangPluginManager::forwardMotionInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardMotionInputUpdated, this, &KijangPluginManager::forwardMotionInputUpdated);
     connect(wrapper, &KijangPluginWrapper::forwardMotionInputRemoved, this, &KijangPluginManager::forwardMotionInputRemoved);
 
     connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceAdded, this, &KijangPluginManager::forwardUdpListenerInterfaceAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceUpdated, this, &KijangPluginManager::forwardUdpListenerInterfaceUpdated);
     connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceRemoved, this, &KijangPluginManager::forwardUdpListenerInterfaceRemoved);
     connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerAdded, this, &KijangPluginManager::forwardModuleHandlerAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerUpdated, this, &KijangPluginManager::forwardModuleHandlerUpdated);
     connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerRemoved, this, &KijangPluginManager::forwardModuleHandlerRemoved);
+}
+
+// https://www.techiedelight.com/check-given-digraph-dag-directed-acyclic-graph-not/
+void KijangPluginManager::dagDfsCheck(QString v, QMap<QString, bool> &discovered, QMap<QString, int> &departure, QStringList &listToDisable, int &time, bool &missingChild)
+{
+    // mark the current node as discovered
+    discovered.insert(v, true);
+    KijangPluginMetadata metadata = m_enabledPlugins.value(v);
+    bool childMissingDependencies = false;
+
+    if (metadata.pluginID.size() > 0) {
+        // do for every edge `v —> u`
+        for (const QString &u: metadata.dependencies)
+        {
+            if (listToDisable.contains(u)) {
+                missingChild = true;
+                listToDisable.append(v);
+            } else if (!discovered.contains(u)) {
+                // if `u` is not yet discovered
+                dagDfsCheck(u, discovered, departure, listToDisable, time, childMissingDependencies);
+            }
+        }
+    } else {
+        // Missing dependency, mark plugin as to be deleted
+        missingChild = true;
+        listToDisable.append(v);
+    }
+
+    // ready to backtrack
+    // set departure time of vertex `v`
+    departure.insert(v, time++);
+
+    // No missing dependencies but child has missing dependencies
+    if (childMissingDependencies) {
+        missingChild = true;
+        listToDisable.append(v);
+    }
+}
+
+void KijangPluginManager::disablePluginAfterConfirmation(QString id)
+{
+    m_pluginObjectList.remove(id);
+    m_wrapperList.value(id)->disconnect();
+    m_wrapperList.value(id)->deleteLater();
+    m_wrapperList.remove(id);
+    m_loaderList.value(id)->unload();
+    m_loaderList.value(id)->deleteLater();
+    m_loaderList.remove(id);
+    emit pluginRemoved(id, m_enabledPlugins.value(id));
+    m_disabledPlugins.insert(id, m_enabledPlugins.value(id));
+    m_enabledPlugins.remove(id);
 }
 
 const QMap<QString, QString> &KijangPluginManager::pluginPathList() const
@@ -519,11 +599,6 @@ void KijangPluginManager::forwardAudioInputAdded(QString src, AudioInput *input)
     emit pluginAudioInputAdded(src, input);
 }
 
-void KijangPluginManager::forwardAudioInputUpdated(QString src, AudioInput *input) {
-    // TODO: Handle by manager
-    emit pluginAudioInputUpdated(src, input);
-}
-
 void KijangPluginManager::forwardAudioInputRemoved(QString src, AudioInput *input) {
     // TODO: Handle by manager
     emit pluginAudioInputRemoved(src, input);
@@ -532,11 +607,6 @@ void KijangPluginManager::forwardAudioInputRemoved(QString src, AudioInput *inpu
 void KijangPluginManager::forwardVideoInputAdded(QString src, VideoInput *input) {
     // TODO: Handle by manager
     emit pluginVideoInputAdded(src, input);
-}
-
-void KijangPluginManager::forwardVideoInputUpdated(QString src, VideoInput *input) {
-    // TODO: Handle by manager
-    emit pluginVideoInputUpdated(src, input);
 }
 
 void KijangPluginManager::forwardVideoInputRemoved(QString src, VideoInput *input) {
@@ -549,11 +619,6 @@ void KijangPluginManager::forwardMotionInputAdded(QString src, MotionInput *inpu
     emit pluginMotionInputAdded(src, input);
 }
 
-void KijangPluginManager::forwardMotionInputUpdated(QString src, MotionInput *input) {
-    // TODO: Handle by manager
-    emit pluginMotionInputUpdated(src, input);
-}
-
 void KijangPluginManager::forwardMotionInputRemoved(QString src, MotionInput *input) {
     // TODO: Handle by manager
     emit pluginMotionInputRemoved(src, input);
@@ -564,28 +629,18 @@ void KijangPluginManager::forwardUdpListenerInterfaceAdded(QString src, UdpListe
     emit pluginUdpListenerInterfaceAdded(src, interface);
 }
 
-void KijangPluginManager::forwardUdpListenerInterfaceUpdated(QString src, UdpListenerInterface *interface) {
-    // TODO: Handle by manager
-    emit pluginUdpListenerInterfaceUpdated(src, interface);
-}
-
 void KijangPluginManager::forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) {
     // TODO: Handle by manager
     emit pluginUdpListenerInterfaceRemoved(src, interface);
 }
 
 void KijangPluginManager::forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler) {
-    // TODO: Handle by manager
+    m_networkManager->addModule(handler);
     emit pluginModuleHandlerAdded(src, handler);
 }
 
-void KijangPluginManager::forwardModuleHandlerUpdated(QString src, KijangModuleHandler *handler) {
-    // TODO: Handle by manager
-    emit pluginModuleHandlerUpdated(src, handler);
-}
-
 void KijangPluginManager::forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler) {
-    // TODO: Handle by manager
+    m_networkManager->removeModule(handler->module());
     emit pluginModuleHandlerRemoved(src, handler);
 }
 

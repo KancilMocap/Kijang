@@ -149,3 +149,32 @@ void KijangNetworkManager::commAutodetect()
 {
     commServer.start(0, true);
 }
+
+void KijangNetworkManager::addModule(KijangModuleHandler *module)
+{
+    quint16 moduleID = module->module();
+    QLoggingCategory network("network");
+    if (moduleHandlerList.contains(moduleID)) {
+        qWarning(network) << "Could not add module" << moduleID << "as module already exists";
+    } else if (moduleID | 32768) {
+        qWarning(network) << "Attempting to add client module to server for module" << moduleID;
+    } else if (moduleID >= 32765 && moduleID <= 32767 ) {
+        qWarning(network) << "Attempting to add protected modules";
+    } else {
+        moduleHandlerList.insert(moduleID, module);
+    }
+}
+
+void KijangNetworkManager::removeModule(quint16 module)
+{
+    QLoggingCategory network("network");
+    if (module | 32768) {
+        qWarning(network) << "Attempting to remove client module from server";
+    } else if (moduleHandlerList.contains(module)) {
+        moduleHandlerList.remove(module);
+    } else if (module >= 32765 && module == 32767) {
+        qWarning(network) << "Attempting to remove protected modules";
+    } else {
+        qInfo(network) << "Module" << module << "does not exist";
+    }
+}

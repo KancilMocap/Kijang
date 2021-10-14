@@ -95,6 +95,5 @@ void KijangTcpServer::incomingConnection(qintptr handle)
     } else {
         client = new StatusClient(nullptr, handle);
     }
-    client->setAutoDelete(true);
     pool.start(client);
 }

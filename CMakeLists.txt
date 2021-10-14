@@ -81,22 +81,48 @@ endif()
 
 # Custom libraries here
 add_library(freenect SHARED IMPORTED)
-set_target_properties(freenect PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect/libfreenect.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect")
 add_library(freenect2 SHARED IMPORTED)
-set_target_properties(freenect2 PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect2/libfreenect2.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect2")
-add_library(kijangProtocol SHARED IMPORTED)
-set_target_properties(kijangProtocol PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/libkijangProtocol.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
+add_library(kijangprotocol SHARED IMPORTED)
+if (WIN32)
+    set_target_properties(freenect PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect/freenect.dll"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect")
+    set_target_properties(freenect2 PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect2/freenect2.dll"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect2")
+
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set_target_properties(kijangprotocol PROPERTIES
+            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/kijangProtocol-debug.dll"
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
+    else()
+        set_target_properties(kijangprotocol PROPERTIES
+            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/kijangProtocol-release.dll"
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
+    endif()
+else()
+    set_target_properties(freenect PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect/libfreenect.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect")
+    set_target_properties(freenect2 PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/freenect2/libfreenect2.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/freenect2")
+
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set_target_properties(kijangprotocol PROPERTIES
+            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/libkijangProtocol-debug.so"
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
+    else()
+        set_target_properties(kijangprotocol PROPERTIES
+            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol/libkijangProtocol-release.so"
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
+    endif()
+endif()
 
 target_compile_definitions(kijang
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(kijang
-  PRIVATE freenect freenect2 kijangProtocol Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
+  PRIVATE freenect freenect2 kijangprotocol Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(kijang PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER moe.kancil.kijang

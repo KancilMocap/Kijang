@@ -6,6 +6,7 @@
 
 class KijangModuleHandler
 {
+    Q_DISABLE_COPY(KijangModuleHandler)
 public:
     virtual quint16 module() = 0;
 

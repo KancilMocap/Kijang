@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QDebug>
 #include <QSettings>
+#include "kijangmodulehandler.h"
 #include "kijangtcpserver.h"
 #include "udpaudiolistener.h"
 #include "udpvideolistener.h"
@@ -43,6 +44,9 @@ public:
     Q_INVOKABLE void statusAutodetect();
     Q_INVOKABLE void commAutodetect();
 
+    void addModule(KijangModuleHandler *module);
+    void removeModule(quint16 module);
+
 signals:
     void commServerPortChanged();
     void statusServerPortChanged();
@@ -67,6 +71,8 @@ private:
     QList<UdpAudioOutput> audioOutputList;
     QList<UdpVideoOutput> videoOutputList;
     QList<UdpMotionOutput> motionOutputList;
+    QMap<quint16, CommunicationClient *> clientList;
+    QMap<quint16, KijangModuleHandler *> moduleHandlerList;
 };
 
 #endif // KIJANGNETWORKMANAGER_H
