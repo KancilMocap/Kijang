@@ -9,6 +9,11 @@ KijangPluginManager::KijangPluginManager(QObject *parent) : QObject(parent)
     qDebug(plugin) << "Plugin manager constructed";
 
     // Load enabled plugins
+    QDir pluginDir(KijangPluginManager::pluginDirPath);
+    if (!pluginDir.exists() && !pluginDir.mkdir(".")) {
+        qWarning(plugin) << "Unable to create plugin directory, plugins would not work as expected";
+        return;
+    }
     QFile enabledFile(KijangPluginManager::pluginDataPath);
     if (!enabledFile.open(QIODevice::ReadOnly)) {
         qWarning(plugin) << "Unable to open prior plugin data file due to" << enabledFile.errorString() << ", all plugins would be disabled";

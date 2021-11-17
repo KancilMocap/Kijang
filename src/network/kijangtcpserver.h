@@ -28,7 +28,7 @@ public:
     bool started() const;
 
 private:
-    bool m_started;
+    bool m_started = false;
     QThreadPool pool;
     ServerType m_type;
     qint16 m_port;

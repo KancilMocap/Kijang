@@ -3,21 +3,28 @@
 Q_DECLARE_LOGGING_CATEGORY(application);
 Q_LOGGING_CATEGORY(application,"application");
 
-QString KijangApp::settingsFile = QCoreApplication::applicationDirPath() + "/settings.ini";
+QString KijangApp::settingsFile = QDir::currentPath() + QDir::separator() + "settings.ini";
 
 KijangApp::KijangApp(QObject *parent) : QObject(parent)
 {
     qDebug(application) << "Application constructed, loading settings...";
-    // TODO: Load settings
+    QSettings settings(settingsFile, QSettings::IniFormat);
+    settings.beginGroup("application");
     // Don't use setters here as it may cause network and serial manager to be prematurely started
-    m_ethernetEnabled = true;
-    m_serialEnabled = false;
+    m_ethernetEnabled = settings.value("ethernet_enabled", true).toBool();
+    m_serialEnabled = settings.value("serial_enabled", false).toBool();
+    settings.endGroup();
 }
 
 KijangApp::~KijangApp()
 {
     qDebug(application) << "Application deconstructed, saving settings...";
-    // TODO: Save settings
+    QSettings settings(settingsFile, QSettings::IniFormat);
+    settings.beginGroup("application");
+    settings.setValue("ethernet_enabled", m_ethernetEnabled);
+    settings.setValue("serial_enabled", m_serialEnabled);
+    settings.endGroup();
+    settings.sync();
 }
 
 int KijangApp::run(int argc, char **argv)
@@ -61,7 +68,9 @@ int KijangApp::run(int argc, char **argv)
 
     // Initialises servers if needed
     m_inputManager.start();
-    // Serial manager and network manager would have been automatically started from QML
+    // TODO: Start serial manager
+    // Start network manager
+    if (m_ethernetEnabled) m_networkManager.start();
     // Start plugin manager
     m_pluginManager.setInputManager(&m_inputManager);
     m_pluginManager.setNetworkManager(&m_networkManager);

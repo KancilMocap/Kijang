@@ -1,6 +1,6 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 
 Item {
     width: parent.width
@@ -76,6 +76,7 @@ Item {
                 RowLayout {
                     Label {
                         text: qsTr("Communications port (TCP)")
+                        color: "white"
                     }
                     SpinBox {
                         id: commPortValue
@@ -87,6 +88,7 @@ Item {
                     }
                     Button {
                         text: qsTr("Autodetect")
+                        onClicked: kijangNetworkManager.commAutoDetect();
                     }
                     Text {
                         id: commWarning
@@ -99,6 +101,7 @@ Item {
                 RowLayout {
                     Label {
                         text: qsTr("Status update port (TCP)")
+                        color: "white"
                     }
                     SpinBox {
                         id: statusPortValue
@@ -122,36 +125,8 @@ Item {
 
                 RowLayout {
                     Label {
-                        text: qsTr("Device input / output ports (UDP)")
-                    }
-                    SpinBox {
-                        id: io1Value
-                        from: 1
-                        to: 65535
-                        editable: true
-                    }
-                    Label {
-                        text: qsTr(" to ")
-                    }
-                    SpinBox {
-                        id: io2Value
-                        from: 1
-                        to: 65535
-                        editable: true
-                    }
-                    Button {
-                        text: qsTr("Autodetect")
-                        onClicked: kijangNetworkManager.commAutoDetect();
-                    }
-                    Text {
-                        id: ioNotif
-                        visible: false
-                    }
-                }
-
-                RowLayout {
-                    Label {
                         text: qsTr("Input devices")
+                        color: "white"
                     }
                     SpinBox {
                         id: inputDeviceValue
@@ -161,6 +136,7 @@ Item {
                     }
                     Text {
                         id: inputDeviceNotif
+                        color: "white"
                     }
                 }
             }

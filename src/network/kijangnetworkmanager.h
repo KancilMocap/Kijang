@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QDebug>
 #include <QSettings>
+#include <QDir>
 #include "kijangmodulehandler.h"
 #include "kijangtcpserver.h"
 #include "udpaudiolistener.h"
@@ -56,6 +57,10 @@ signals:
     void statusServerErrorStringChanged();
 
 private:
+    void resetCommServer();
+    void resetStatusServer();
+
+    static QString settingsFile;
     quint16 m_commServerPort;
     quint16 m_statusServerPort;
     bool m_commServerError;
@@ -63,8 +68,8 @@ private:
     QString m_commServerErrorString;
     QString m_statusServerErrorString;
 
-    KijangTcpServer commServer;
-    KijangTcpServer statusServer;
+    KijangTcpServer *commServer = nullptr;
+    KijangTcpServer *statusServer = nullptr;
     QList<UdpAudioListener> audioListenerList;
     QList<UdpVideoListener> videoListenerList;
     QList<UdpMotionListener> motionListenerList;
