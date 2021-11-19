@@ -119,7 +119,7 @@ void KijangPluginManager::openImportDialog()
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     int ret = msgBox.exec();
-    if (ret | QMessageBox::Yes) {
+    if (ret & QMessageBox::Yes) {
         // Check if plugin already exists
         if (m_disabledPlugins.contains(pluginMetadata.pluginID) || m_enabledPlugins.contains(pluginMetadata.pluginID)) {
             bool pluginEnabled = m_enabledPlugins.contains(pluginMetadata.pluginID);

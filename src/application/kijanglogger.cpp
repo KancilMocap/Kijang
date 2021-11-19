@@ -12,7 +12,10 @@ static const QtMessageHandler QT_DEFAULT_MESSAGE_HANDLER = qInstallMessageHandle
 
 KijangLogger::KijangLogger(QObject *parent) : QObject(parent)
 {
-
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &KijangLogger::updateLogUI);
+    timer->setInterval(500);
+    timer->start();
 }
 
 void KijangLogger::attach()
@@ -79,6 +82,11 @@ void KijangLogger::flush()
         ts.flush();
         file.close();
     }
+}
+
+void KijangLogger::updateLogUI()
+{
+    emit logStringChanged(m_logString);
 }
 
 const QString &KijangLogger::logString()

@@ -8,7 +8,7 @@
 
 ### GPL v3 License
 
-- [kijangProtocol](https://github.com/KancilMocap/KijangProtocol)
+- [kijangProtocol](https://github.com/KancilMocap/KijangProtocol) v0.2.0
 
 ### GPL v2 License
 

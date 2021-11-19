@@ -2,38 +2,35 @@
 #define KIJANGMODULEHANDLER_H
 
 #include <QtPlugin>
-#include "inc/kijangProtocol/kijangprotocol.h"
+#include "../../inc/kijangProtocol/kijangprotocol.h"
 
 class KijangModuleHandler
 {
     Q_DISABLE_COPY(KijangModuleHandler)
 public:
+    explicit KijangModuleHandler() = default;
     virtual quint16 module() = 0;
 
-    // Handle request from another client / other modules
-    virtual Kijang::KijangProtocol handleRequest(Kijang::KijangProtocol req) = 0;
-    // Slot - Handle response that is sent via localRequest, clientRequest, allClientsRequest
-    virtual Kijang::KijangProtocol handleResponse(Kijang::KijangProtocol res) = 0;
-    // Whether the module can handle the specific code
+    // Handle request from the client
+    virtual void handleRequest(Kijang::KijangProtocol req) = 0;
+    // Handle requests from other modules
+    virtual void handleLocalRequest(quint16 src, Kijang::KijangProtocol res) = 0;
+    // Whether this module can handle the specific code
     virtual bool canHandleCode(quint16 code) = 0;
     // Slot - whether a module is present
-    virtual void modulePresent(quint16 module, bool presenct) = 0;
+    virtual void modulePresent(quint16 module, bool present) = 0;
     // Slot - Whether the module can handle the selected code
     virtual void codePresent(quint16 module, quint16 code, bool present) = 0;
 
 signals:
-    // Sending async response back to client / other modules
-    virtual void asyncResponse(Kijang::KijangProtocol res) = 0;
-    // Send request to another module on the server
-    virtual void localRequest(Kijang::KijangProtocol req) = 0;
-    // Send request to a specific client on the server
-    virtual void clientRequest(Kijang::KijangProtocol req) = 0;
-    // Send request to all clients connected to the server
-    virtual void allClientsRequest(Kijang::KijangProtocol req) = 0;
+    // Send packet to a specific client on the server
+    virtual void sendResponse(Kijang::KijangProtocol req) = 0;
+    // Send packet to a local module handler
+    virtual void sendLocalResponse(quint16 src, quint16 target, Kijang::KijangProtocol req) = 0;
     // Whether a specific module is present
-    virtual void checkModulePresent(quint16 module) = 0;
-    // Whet a a specific module can handle a specific code
-    virtual void checkCodePresent(quint16 module, quint16 code) = 0;
+    virtual void checkModulePresent(quint16 src, quint16 module) = 0;
+    // Whether a a specific module can handle a specific code
+    virtual void checkCodePresent(quint16 src, quint16 module, quint16 code) = 0;
 
 };
 

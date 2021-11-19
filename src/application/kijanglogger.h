@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QDir>
 #include <iostream>
+#include <QTimer>
 #include <QTextStream>
 
 class KijangLogger : public QObject
@@ -23,7 +24,7 @@ public:
     static void setLogString(const QString &newLogString);
 
 signals:
-    void logStringChanged();
+    void logStringChanged(const QString &newText);
 
 public slots:
     static void flush();
@@ -37,6 +38,9 @@ private:
     static qint64 lastExportTime;
     static int minExportInterval;
     static QString m_logString;
+
+    QTimer *timer;
+    void updateLogUI();
 
 signals:
 

@@ -8,29 +8,30 @@
 #include <QTcpSocket>
 #include <QEventLoop>
 #include <QLoggingCategory>
+#include <QRandomGenerator>
 #include "../../inc/kijangProtocol/kijangprotocol.h"
 
 class CommunicationClient : public QObject, public QRunnable
 {
     Q_OBJECT
 public:
-    explicit CommunicationClient(QObject *parent = nullptr, qintptr handle = 0);
+    explicit CommunicationClient(QObject *parent = nullptr, qintptr handle = 0, quint32 id = 0);
     ~CommunicationClient();
 
     static int INITIAL_TIMEOUT;
 
 signals:
-    void terminated(QString message);
+    void terminated(quint32 clientID);
+    void handleRequest(quint32 clientID, Kijang::KijangProtocol request);
 
 public slots:
     void stateChanged(QAbstractSocket::SocketState socketState);
+    void sendResponse(Kijang::KijangProtocol response);
 
     // QRunnable interface
 public:
     void run() Q_DECL_OVERRIDE;
-
     quint32 clientID() const;
-    void setClientID(quint32 newClientID);
 
 private:
     bool connected;

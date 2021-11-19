@@ -16,8 +16,6 @@ public:
     virtual bool audioStarted() const = 0;
     virtual bool audioErrorred() const = 0;
 
-    // To allow multiple inheritance between AudioInput, VideoInput and MotionInput, Qt's signals and slots could not be used
-    // Custom signals used to relay to slots instead
     virtual const QBuffer &audioStream() const = 0;
     // https://stackoverflow.com/a/18113601 - Signals in abstract non-QObject classes
 signals:

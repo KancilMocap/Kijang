@@ -55,6 +55,35 @@ bool KijangTcpServer::start(quint32 port, bool autoSearch)
     }
 }
 
+void KijangTcpServer::handleRequest(quint32 clientID, Kijang::KijangProtocol request)
+{
+    // Forward to network manager
+    emit forwardHandleRequest(clientID, request);
+}
+
+void KijangTcpServer::forwardSendResponse(quint32 clientID, Kijang::KijangProtocol response)
+{
+    QLoggingCategory network("network");
+    if (!clientMap.contains(clientID)) {
+        qWarning(network) << "Attempted to send response to non-existent client with ID " << clientID;
+        return;
+    }
+    clientMap.value(clientID)->sendResponse(response);
+}
+
+void KijangTcpServer::clientTerminated(quint32 clientID)
+{
+    QLoggingCategory network("network");
+    if (!clientMap.contains(clientID)) {
+        qWarning(network) << "Client termination request received but no corresponding client ID found";
+        return;
+    }
+
+    clientMap.value(clientID)->deleteLater();
+    clientMap.remove(clientID);
+    qDebug(network) << "Communication client with ID" << clientID << "terminated";
+}
+
 void KijangTcpServer::quit()
 {
     QLoggingCategory network("network");
@@ -88,12 +117,18 @@ int KijangTcpServer::findPort()
 void KijangTcpServer::incomingConnection(qintptr handle)
 {
     QLoggingCategory network("network");
-    QRunnable* client;
     qDebug(network) << "Incoming connection for" << typeString() << "server, handle" << handle;
     if (m_type == KijangTcpServer::ServerType::Communication) {
-        client = new CommunicationClient(nullptr, handle);
+        quint32 id = random.generate();
+        CommunicationClient *client = new CommunicationClient(nullptr, handle, id);
+        client->setAutoDelete(false); // Manually emit deletion request after run() is completed to allow clientMap to remove client
+        connect(client, &CommunicationClient::terminated, this, &KijangTcpServer::clientTerminated);
+        clientMap.insert(id, client);
+        pool.start(client);
     } else {
+        QRunnable* client;
         client = new StatusClient(nullptr, handle);
+        client->setAutoDelete(true);
+        pool.start(client);
     }
-    pool.start(client);
 }

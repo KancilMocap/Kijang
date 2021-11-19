@@ -55,8 +55,19 @@ signals:
     void statusServerErrorChanged();
     void commServerErrorStringChanged();
     void statusServerErrorStringChanged();
+    void sendResponse(quint32 clientID, Kijang::KijangProtocol response);
+
+public slots:
+    void handleRequest(quint32 clientID, Kijang::KijangProtocol request);
+
+    // Received from module handlers
+    void moduleSendResponse(Kijang::KijangProtocol req);
+    void sendLocalResponse(quint16 src, quint16 target, Kijang::KijangProtocol req);
+    void checkModulePresent(quint16 src, quint16 module);
+    void checkCodePresent(quint16 src, quint16 module, quint16 code);
 
 private:
+    bool sourceModuleExists(quint16 module);
     void resetCommServer();
     void resetStatusServer();
 
