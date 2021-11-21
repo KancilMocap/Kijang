@@ -8,6 +8,7 @@ class UdpListenerInterface
     Q_DISABLE_COPY(UdpListenerInterface)
 public:
     explicit UdpListenerInterface() = default;
+    virtual ~UdpListenerInterface() {}
 
 };
 

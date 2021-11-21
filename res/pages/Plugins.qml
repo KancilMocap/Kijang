@@ -11,7 +11,12 @@ RowLayout {
         width: parent.width * 0.8
         TableView {
             id: pluginTable
+            visible: kijangPluginManager.hasPlugins
             objectName: "pluginTable"
+        }
+        Text {
+            visible: !kijangPluginManager.hasPlugins
+            text: qsTr("No plugins enabled")
         }
     }
 

@@ -21,6 +21,7 @@
 class KijangPluginManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool hasPlugins READ hasPlugins WRITE setHasPlugins NOTIFY hasPluginsChanged)
 public:
     explicit KijangPluginManager(QObject *parent = nullptr);
     ~KijangPluginManager();
@@ -46,6 +47,9 @@ public:
     void setInputManager(KijangInputManager *newInputManager);
     void setNetworkManager(KijangNetworkManager *newNetworkManager);
 
+    bool hasPlugins() const;
+    void setHasPlugins(bool newHasPlugins);
+
 private:
     void connectWrapperFunctions(KijangPluginWrapper *wrapper);
     void dagDfsCheck(QString v, QMap<QString, bool> &discovered, QMap<QString, int> &departure, QStringList &listToDisable, int &time, bool &missingChild);
@@ -69,6 +73,8 @@ signals:
 
     void pluginEvent(QString plugin, QList<QVariant> event);
     void pluginFatal(QString plugin, QString error);
+
+    void hasPluginsChanged();
 
 public slots:
     // Received from plugin wrappers
@@ -111,6 +117,7 @@ public slots:
     void forwardFatalSignal(QString src, QString error=nullptr);
 
 private:
+    bool m_hasPlugins;
     bool pluginInStartList(QString plugin);
     QList<QString> startEnabledPlugins; // Loaded at start of program
     QMap<QString, KijangPlugin *> m_pluginObjectList; // For enabled plugins only
@@ -121,7 +128,6 @@ private:
     QMap<QString, KijangPluginMetadata> m_disabledPlugins;
     KijangInputManager *m_inputManager;
     KijangNetworkManager *m_networkManager;
-
 };
 
 #endif // KIJANGPLUGINMANAGER_H

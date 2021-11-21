@@ -29,8 +29,6 @@ KijangApp::~KijangApp()
 
 int KijangApp::run(int argc, char **argv)
 {
-    qRegisterMetaType<Kijang::KijangProtocol>();
-
     // Set application info
     QCoreApplication::setApplicationName("Kijang");
     QCoreApplication::setOrganizationName("KancilMocap");
@@ -76,7 +74,11 @@ int KijangApp::run(int argc, char **argv)
     m_pluginManager.setNetworkManager(&m_networkManager);
     m_pluginManager.loadPlugins();
 
-    return app.exec();
+    int response = app.exec();
+    qDebug() << "Response code: " << response;
+    KijangLogger::flush();
+    m_engine->deleteLater();
+    return response;
 }
 
 const QString &KijangApp::getSettingsFile()

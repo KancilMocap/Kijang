@@ -8,6 +8,7 @@
 class UdpVideoListener : public QObject, public UdpListenerInterface
 {
     Q_OBJECT
+    Q_INTERFACES(UdpListenerInterface)
 public:
     explicit UdpVideoListener(QObject *parent = nullptr);
 

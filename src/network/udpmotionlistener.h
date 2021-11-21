@@ -8,6 +8,7 @@
 class UdpMotionListener : public QObject, public UdpListenerInterface
 {
     Q_OBJECT
+    Q_INTERFACES(UdpListenerInterface)
 public:
     explicit UdpMotionListener(QObject *parent = nullptr);
 

@@ -51,6 +51,7 @@ void MicrophoneInput::stateChanged(QAudio::State state)
     switch(state) {
         case QAudio::State::ActiveState:
             audioStart();
+        break;
         default:
             audioStop();
     }

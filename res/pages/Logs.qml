@@ -15,7 +15,7 @@ ScrollView {
 
         Text {
             objectName: "logsUI"
-            text: kijangLogsUI.logString
+            text: kijangLogsUI == null ? "" : kijangLogsUI.logString
             color: "white"
         }
     }

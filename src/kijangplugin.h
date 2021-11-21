@@ -29,6 +29,8 @@ class KijangPlugin
 {
     Q_DISABLE_COPY(KijangPlugin)
 public:
+    explicit KijangPlugin() = default;
+    virtual ~KijangPlugin() {}
     virtual KijangPluginMetadata metadata() = 0;
     virtual void setWrapper(KijangPluginWrapper *wrapper) = 0;
 

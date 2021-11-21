@@ -318,6 +318,7 @@ void KijangPluginManager::loadPlugins()
 void KijangPluginManager::refreshPluginTable()
 {
     // TODO: Complete
+    setHasPlugins(m_pluginPathList.size() > 0);
 }
 
 bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QList<QPair<QString, QString> > priorList)
@@ -771,4 +772,17 @@ void KijangPluginManager::forwardFatalSignal(QString src, QString error) {
         QWidget tempWidget;
         QMessageBox::critical(&tempWidget, "Plugin error", "An error has occurred in the plugin " + src + " but it could not be disabled. The application may not function as intended.");
     }
+}
+
+bool KijangPluginManager::hasPlugins() const
+{
+    return m_hasPlugins;
+}
+
+void KijangPluginManager::setHasPlugins(bool newHasPlugins)
+{
+    if (m_hasPlugins == newHasPlugins)
+        return;
+    m_hasPlugins = newHasPlugins;
+    emit hasPluginsChanged();
 }

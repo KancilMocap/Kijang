@@ -75,26 +75,51 @@ Item {
 
                 RowLayout {
                     Label {
-                        text: qsTr("Communications port (TCP)")
+                        text: qsTr("Read port (TCP)")
                         color: "white"
                     }
                     SpinBox {
                         id: commPortValue
                         from: 1
                         to: 65535
-                        value: kijangNetworkManager.commServerPort
-                        onValueChanged: kijangNetworkManager.commServerPort = value
+                        value: kijangNetworkManager == null ? 4318 : kijangNetworkManager.readServerPort
+                        onValueChanged: kijangNetworkManager.readServerPort = value
                         editable: true
                     }
                     Button {
                         text: qsTr("Autodetect")
-                        onClicked: kijangNetworkManager.commAutoDetect();
+                        onClicked: kijangNetworkManager.readAutoDetect();
                     }
                     Text {
                         id: commWarning
                         color: "red"
-                        visible: kijangNetworkManager.commServerError
-                        text: kijangNetworkManager.commServerErrorString
+                        visible: kijangNetworkManager == null ? false : kijangNetworkManager.readServerError
+                        text: kijangNetworkManager == null ? "" : kijangNetworkManager.readServerErrorString
+                    }
+                }
+
+                RowLayout {
+                    Label {
+                        text: qsTr("Write port (TCP)")
+                        color: "white"
+                    }
+                    SpinBox {
+                        id: writePortValue
+                        from: 1
+                        to: 65535
+                        value: kijangNetworkManager == null ? 4319 : kijangNetworkManager.writeServerPort
+                        onValueChanged: kijangNetworkManager.writeServerPort = value
+                        editable: true
+                    }
+                    Button {
+                        text: qsTr("Autodetect")
+                        onClicked: kijangNetworkManager.writeAutoDetect();
+                    }
+                    Text {
+                        id: writeWarning
+                        color: "red"
+                        visible: kijangNetworkManager == null ? false : kijangNetworkManager.writeServerError
+                        text: kijangNetworkManager == null ? "" : kijangNetworkManager.writeServerErrorString
                     }
                 }
 
@@ -107,7 +132,7 @@ Item {
                         id: statusPortValue
                         from: 1
                         to: 65535
-                        value: kijangNetworkManager.statusServerPort
+                        value: kijangNetworkManager == null ? 4320 : kijangNetworkManager.statusServerPort
                         onValueChanged: kijangNetworkManager.statusServerPort = value
                         editable: true
                     }
@@ -118,8 +143,8 @@ Item {
                     Text {
                         id: statusWarning
                         color: "red"
-                        visible: kijangNetworkManager.statusServerError
-                        text: kijangNetworkManager.statusServerErrorString
+                        visible: kijangNetworkManager == null ? false : kijangNetworkManager.statusServerError
+                        text: kijangNetworkManager == null ? "" : kijangNetworkManager.statusServerErrorString
                     }
                 }
 

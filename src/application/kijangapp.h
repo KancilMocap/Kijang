@@ -11,7 +11,6 @@
 #include <QSharedPointer>
 #include <QtQml>
 #include "kijanglogger.h"
-#include "../../inc/kijangProtocol/kijangprotocol.h"
 #include "kijangpluginmanager.h"
 #include "../input/kijanginputmanager.h"
 #include "../network/kijangnetworkmanager.h"

@@ -39,10 +39,18 @@ set(PROJECT_SOURCES
         src/input/microphoneinput.h src/input/microphoneinput.cpp
 
         src/network/kijangnetworkmanager.h src/network/kijangnetworkmanager.cpp
+        src/network/kijangprotocol.h src/network/kijangprotocol.cpp
+
         src/network/kijangtcpserver.h src/network/kijangtcpserver.cpp
-        src/network/communicationclient.h src/network/communicationclient.cpp
+        src/network/kijangreadserver.h src/network/kijangreadserver.cpp
+        src/network/kijangwriteserver.h src/network/kijangwriteserver.cpp
+        src/network/kijangstatusserver.h src/network/kijangstatusserver.cpp
+
+        src/network/readclient.h src/network/readclient.cpp
+        src/network/writeclient.h src/network/writeclient.cpp
         src/network/statusclient.h src/network/statusclient.cpp
-        src/network/kijangmodulehandler.h src/network/kijangmodulehandler.cpp
+
+        src/network/kijangmodulehandler.h src/network/kijangmodulehandler.cpp # Interface
 
         src/network/udplistenerinterface.h src/network/udplistenerinterface.cpp # Interface
         src/network/udpaudiolistener.h src/network/udpaudiolistener.cpp
@@ -54,6 +62,9 @@ set(PROJECT_SOURCES
         src/network/udpaudiooutput.h src/network/udpaudiooutput.cpp
         src/network/udpvideooutput.h src/network/udpvideooutput.cpp
         src/network/udpmotionoutput.h src/network/udpmotionoutput.cpp
+
+        src/network/servercontrolmodule.h src/network/servercontrolmodule.cpp
+        src/network/kijangmodule.h src/network/kijangmodule.cpp
 )
 
 qt_add_executable(kijang
@@ -62,30 +73,7 @@ qt_add_executable(kijang
 )
 
 # Custom libraries here
-add_library(kijangprotocol SHARED IMPORTED)
-if (WIN32)
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set_target_properties(kijangprotocol PROPERTIES
-            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-debug.dll"
-            IMPORTED_IMPLIB "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-debug.lib"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
-    else()
-        set_target_properties(kijangprotocol PROPERTIES
-            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-release.dll"
-            IMPORTED_IMPLIB "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-release.lib"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
-    endif()
-else()
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set_target_properties(kijangprotocol PROPERTIES
-            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-debug.so"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
-    else()
-        set_target_properties(kijangprotocol PROPERTIES
-            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/kijangProtocol-release.so"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/inc/kijangProtocol")
-    endif()
-
+if (!WIN32)
     add_library(freenect SHARED IMPORTED)
     add_library(freenect2 SHARED IMPORTED)
     set_target_properties(freenect PROPERTIES
@@ -100,10 +88,10 @@ target_compile_definitions(kijang
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 if (WIN32)
     target_link_libraries(kijang
-      PRIVATE kijangprotocol Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
+      PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
 else()
     target_link_libraries(kijang
-      PRIVATE freenect freenect2 kijangprotocol Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
+      PRIVATE freenect freenect2 Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::Widgets)
 endif()
 
 set_target_properties(kijang PROPERTIES

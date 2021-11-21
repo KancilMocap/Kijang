@@ -8,6 +8,7 @@
 class UdpAudioListener : public QObject, public UdpListenerInterface
 {
     Q_OBJECT
+    Q_INTERFACES(UdpListenerInterface)
 public:
     explicit UdpAudioListener(QObject *parent = nullptr);
 
