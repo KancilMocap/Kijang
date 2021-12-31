@@ -45,6 +45,7 @@ void KijangReadServer::receivedTermination(quint32 clientID, bool emitEvent)
     disconnect(client, &ReadClient::handleRequest, this, &KijangReadServer::handleRequest);
     disconnect(client, &ReadClient::terminated, this, &KijangReadServer::receivedTermination);
     client->receiveTermination();
+    delete client;
     clientMap.remove(clientID);
     qDebug(network) << "Read client with ID" << clientID << "terminated";
     if (emitEvent) emit clientTerminated(clientID);

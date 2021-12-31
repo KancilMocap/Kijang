@@ -219,6 +219,7 @@ void KijangNetworkManager::removeModule(quint16 module)
         disconnect(dynamic_cast<QObject*>(currentModule), SIGNAL(sendLocalResponse(quint16,quint16,KijangProtocol)), this, SLOT(sendLocalResponse(quint16,quint16,KijangProtocol)));
         disconnect(dynamic_cast<QObject*>(currentModule), SIGNAL(checkModulePresent(quint16,quint16)), this, SLOT(checkModulePresent(quint16,quint16)));
         disconnect(dynamic_cast<QObject*>(currentModule), SIGNAL(checkCodePresent(quint16,quint16,quint16)), this, SLOT(checkCodePresent(quint16,quint16,quint16)));
+        delete currentModule;
         moduleHandlerList.remove(module);
     } else if (module == 32766 || module == 32767) {
         qWarning(network) << "Attempting to remove protected modules";

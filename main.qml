@@ -5,8 +5,6 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls.Universal 2.12
 
 ApplicationWindow {
-    width: 640
-    height: 480
     visible: true
     title: qsTr("Kijang")
     Universal.theme: Universal.Dark
@@ -20,21 +18,32 @@ ApplicationWindow {
                 onClicked: m_container.source = "res/pages/Home.qml"
             }
             ToolButton {
-                text: qsTr("Inputs")
-                onClicked: m_container.source = "res/pages/Input.qml"
+                text: qsTr("Video")
+                onClicked: m_container.source = "res/pages/Video.qml"
             }
             ToolButton {
-                text: qsTr("Settings")
-                onClicked: m_container.source = "res/pages/Settings.qml"
+                text: qsTr("Audio")
+                onClicked: m_container.source = "res/pages/Audio.qml"
+            }
+            ToolButton {
+                text: qsTr("Motion")
+                onClicked: m_container.source = "res/pages/Motion.qml"
+            }
+            ToolButton {
+                text: qsTr("Outputs")
+                onClicked: m_container.source = "res/pages/Outputs.qml"
+            }
+            ToolButton {
+                text: qsTr("Security")
+                onClicked: m_container.source = "res/pages/Security.qml"
             }
             ToolButton {
                 text: qsTr("Plugins")
                 onClicked: m_container.source = "res/pages/Plugins.qml"
             }
-
             ToolButton {
-                text: qsTr("Logs")
-                onClicked: m_container.source = "res/pages/Logs.qml"
+                text: qsTr("Settings")
+                onClicked: m_container.source = "res/pages/Settings.qml"
             }
         }
     }

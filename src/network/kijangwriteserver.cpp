@@ -26,6 +26,7 @@ void KijangWriteServer::receivedTermination(quint32 clientID, bool emitEvent)
     WriteClient *client = clientMap.value(clientID);
     disconnect(client, &WriteClient::terminated, this, &KijangWriteServer::receivedTermination);
     client->receiveTermination();
+    delete client;
     clientMap.remove(clientID);
     qDebug(network) << "Write client with ID" << clientID << "terminated";
     if (emitEvent) emit clientTerminated(clientID);
@@ -40,7 +41,7 @@ void KijangWriteServer::clientSelfTerminate(qintptr handle)
     }
 
     WriteClient *client = pendingClients.value(handle);
-    client->deleteLater();
+    delete client;
     pendingClients.remove(handle);
 }
 

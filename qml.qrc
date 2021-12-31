@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>res/pages/Home.qml</file>
-        <file>res/pages/Input.qml</file>
         <file>res/pages/Settings.qml</file>
         <file>res/components/AudioInput.qml</file>
         <file>res/components/VideoInput.qml</file>
@@ -10,7 +9,11 @@
         <file>res/dialogs/ManageDeviceDialog.qml</file>
         <file>res/dialogs/ManageUserDialog.qml</file>
         <file>res/dialogs/ManageSerialDialog.qml</file>
-        <file>res/pages/Logs.qml</file>
         <file>res/pages/Plugins.qml</file>
+        <file>res/pages/Video.qml</file>
+        <file>res/pages/Audio.qml</file>
+        <file>res/pages/Motion.qml</file>
+        <file>res/pages/Outputs.qml</file>
+        <file>res/pages/Security.qml</file>
     </qresource>
 </RCC>
