@@ -16,7 +16,6 @@
 #include "../input/kijanginputmanager.h"
 #include "../network/kijangnetworkmanager.h"
 #include "../kijangplugin.h"
-#include "../kijangpluginwrapper.h"
 
 class KijangPluginManager : public QObject
 {
@@ -37,7 +36,6 @@ public:
     bool disablePlugin(QString id, bool disableDependants, QList<QPair<QString, QString>> priorList=QList<QPair<QString, QString>>());
     bool deletePlugin(QString id, bool disableDependants, bool deleteEnabled);
 
-    const QMap<QString, KijangPluginWrapper *> &wrapperList() const;
     const QMap<QString, QPluginLoader *> &loaderList() const;
     const QMap<QString, KijangPluginMetadata> &enabledPlugins() const;
     const QMap<QString, KijangPluginMetadata> &disabledPlugins() const;
@@ -51,7 +49,6 @@ public:
     void setHasPlugins(bool newHasPlugins);
 
 private:
-    void connectWrapperFunctions(KijangPluginWrapper *wrapper);
     void dagDfsCheck(QString v, QMap<QString, bool> &discovered, QMap<QString, int> &departure, QStringList &listToDisable, int &time, bool &missingChild);
     void disablePluginAfterConfirmation(QString id);
 
@@ -79,49 +76,50 @@ signals:
 public slots:
     // Received from plugin wrappers
     // Events - Signals (KijangPlugin)
-    void forwardAudioInputAdded(QString src, AudioInput *input);
-    void forwardAudioInputRemoved(QString src, AudioInput *input);
-    void forwardVideoInputAdded(QString src, VideoInput *input);
-    void forwardVideoInputRemoved(QString src, VideoInput *input);
-    void forwardMotionInputAdded(QString src, MotionInput *input);
-    void forwardMotionInputRemoved(QString src, MotionInput *input);
+    void audioInputAdded(QString src, AudioInput *input);
+    void audioInputRemoved(QString src, AudioInput *input);
+    void videoInputAdded(QString src, VideoInput *input);
+    void videoInputRemoved(QString src, VideoInput *input);
+    void motionInputAdded(QString src, MotionInput *input);
+    void motionInputRemoved(QString src, MotionInput *input);
 
-    void forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface);
-    void forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface);
-    void forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler);
-    void forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler);
+    void udpListenerInterfaceAdded(QString src, UdpListenerInterface *interface);
+    void udpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface);
+    void moduleHandlerAdded(QString src, KijangModuleHandler *handler);
+    void moduleHandlerRemoved(QString src, KijangModuleHandler *handler);
 
     // Request all plugins - Signals (QString src, KijangPlugin)
-    void forwardRequestAllMetadata(QString src);
-    void forwardRequestAllPlugins(QString src);
+    void requestAllMetadata(QString src);
+    void requestAllPlugins(QString src);
 
-    void forwardRequestAllAudioInput(QString src);
-    void forwardRequestAllMotionInput(QString src);
-    void forwardRequestAllVideoInput(QString src);
+    void requestAllAudioInput(QString src);
+    void requestAllMotionInput(QString src);
+    void requestAllVideoInput(QString src);
 
-    void forwardRequestAllUdpListener(QString src);
-    void forwardRequestAllModuleHandlers(QString src);
+    void requestAllUdpListener(QString src);
+    void requestAllModuleHandlers(QString src);
 
     // Request specific plugin  - Signals (QString src, KijangPlugin)
-    void forwardRequestPluginMetadata(QString src, QString plugin);
+    void requestPluginMetadata(QString src, QString plugin);
+    void requestPluginObject(QString src, QString object);
 
-    void forwardRequestPluginAudioInput(QString src, QString plugin);
-    void forwardRequestPluginMotionInput(QString src, QString plugin);
-    void forwardRequestPluginVideoInput(QString src, QString plugin);
+    void requestPluginAudioInput(QString src, QString plugin);
+    void requestPluginMotionInput(QString src, QString plugin);
+    void requestPluginVideoInput(QString src, QString plugin);
 
-    void forwardRequestPluginUdpListener(QString src, QString plugin);
-    void forwardRequestPluginModuleHandlers(QString src, QString plugin);
+    void requestPluginUdpListener(QString src, QString plugin);
+    void requestPluginModuleHandlers(QString src, QString plugin);
 
     // Special events (QString src, KijangPlugin)
-    void forwardEventSignal(QString src, QList<QVariant> values);
-    void forwardFatalSignal(QString src, QString error=nullptr);
+    void eventSignal(QString src, QList<QVariant> values);
+    void fatalSignal(QString src, QString error=nullptr);
 
 private:
     bool m_hasPlugins;
+    void connectPluginSignals(KijangPlugin *pluginObject);
     bool pluginInStartList(QString plugin);
     QList<QString> startEnabledPlugins; // Loaded at start of program
     QMap<QString, KijangPlugin *> m_pluginObjectList; // For enabled plugins only
-    QMap<QString, KijangPluginWrapper *> m_wrapperList; // For enabled plugins only
     QMap<QString, QPluginLoader *> m_loaderList; // For enabled plugins only
     QMap<QString, QString> m_pluginPathList; // For both enabled and disabled plugins
     QMap<QString, KijangPluginMetadata> m_enabledPlugins;

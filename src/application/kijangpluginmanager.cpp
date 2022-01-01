@@ -257,14 +257,10 @@ void KijangPluginManager::loadPlugins()
 
             if (pluginInStartList(pluginMetadata.pluginID)) {
                 // Direct enable without going through enablePlugin, will verify later
-                KijangPluginWrapper *wrapper = new KijangPluginWrapper(this);
-                wrapper->setPlugin(pluginMetadata.pluginID);
-                connectWrapperFunctions(wrapper);
-                kijangPlugin->setWrapper(wrapper);
+                connectPluginSignals(kijangPlugin);
                 m_enabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
                 m_loaderList.insert(pluginMetadata.pluginID, loader);
                 m_pluginObjectList.insert(pluginMetadata.pluginID, kijangPlugin);
-                m_wrapperList.insert(pluginMetadata.pluginID, wrapper);
             } else {
                 m_disabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
             }
@@ -392,12 +388,8 @@ bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QLis
         }
     }
 
-    KijangPluginWrapper *wrapper = new KijangPluginWrapper(this);
-    wrapper->setPlugin(id);
-    connectWrapperFunctions(wrapper);
-    kijangPlugin->setWrapper(wrapper);
+    connectPluginSignals(kijangPlugin);
     m_pluginObjectList.insert(id, kijangPlugin);
-    m_wrapperList.insert(id, wrapper);
     m_loaderList.insert(id, loader);
     m_enabledPlugins.insert(id, pluginMetadata);
     m_disabledPlugins.remove(id);
@@ -484,11 +476,6 @@ bool KijangPluginManager::deletePlugin(QString id, bool disableDependants, bool 
     }
 }
 
-const QMap<QString, KijangPluginWrapper *> &KijangPluginManager::wrapperList() const
-{
-    return m_wrapperList;
-}
-
 const QMap<QString, QPluginLoader *> &KijangPluginManager::loaderList() const
 {
     return m_loaderList;
@@ -529,19 +516,42 @@ const QMap<QString, KijangPlugin *> &KijangPluginManager::pluginObjectList() con
     return m_pluginObjectList;
 }
 
-void KijangPluginManager::connectWrapperFunctions(KijangPluginWrapper *wrapper)
+void KijangPluginManager::connectPluginSignals(KijangPlugin *pluginObject)
 {
-    connect(wrapper, &KijangPluginWrapper::forwardAudioInputAdded, this, &KijangPluginManager::forwardAudioInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardAudioInputRemoved, this, &KijangPluginManager::forwardAudioInputRemoved);
-    connect(wrapper, &KijangPluginWrapper::forwardVideoInputAdded, this, &KijangPluginManager::forwardVideoInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardVideoInputRemoved, this, &KijangPluginManager::forwardVideoInputRemoved);
-    connect(wrapper, &KijangPluginWrapper::forwardMotionInputAdded, this, &KijangPluginManager::forwardMotionInputAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardMotionInputRemoved, this, &KijangPluginManager::forwardMotionInputRemoved);
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(audioInputAdded(QString,AudioInput*)), this, SLOT(audioInputAdded(QString,AudioInput*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(audioInputRemoved(QString,AudioInput*)), this, SLOT(audioInputRemoved(QString,AudioInput*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(videoInputAdded(QString,VideoInput*)), this, SLOT(videoInputAdded(QString,VideoInput*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(videoInputRemoved(QString,VideoInput*)), this, SLOT(videoInputRemoved(QString,VideoInput*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(motionInputAdded(QString,MotionInput*)), this, SLOT(motionInputAdded(QString,MotionInput*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(motionInputRemoved(QString,MotionInput*)), this, SLOT(motionInputRemoved(QString,MotionInput*)));
 
-    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceAdded, this, &KijangPluginManager::forwardUdpListenerInterfaceAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardUdpListenerInterfaceRemoved, this, &KijangPluginManager::forwardUdpListenerInterfaceRemoved);
-    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerAdded, this, &KijangPluginManager::forwardModuleHandlerAdded);
-    connect(wrapper, &KijangPluginWrapper::forwardModuleHandlerRemoved, this, &KijangPluginManager::forwardModuleHandlerRemoved);
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(udpListenerInterfaceAdded(QString,UdpListenerInterface*)), this, SLOT(udpListenerInterfaceAdded(QString,UdpListenerInterface*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(udpListenerInterfaceRemoved(QString,UdpListenerInterface*)), this, SLOT(udpListenerInterfaceRemoved(QString,UdpListenerInterface*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(moduleHandlerAdded(QString,KijangModuleHandler*)), this, SLOT(moduleHandlerAdded(QString,KijangModuleHandler*)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(moduleHandlerRemoved(QString,KijangModuleHandler*)), this, SLOT(moduleHandlerRemoved(QString,KijangModuleHandler*)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllMetadata(QString)), this, SLOT(requestAllMetadata(QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllPlugins(QString)), this, SLOT(requestAllPlugins(QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllAudioInput(QString)), this, SLOT(requestAllAudioInput(QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllMotionInput(QString)), this, SLOT(requestAllMotionInput(QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllVideoInput(QString)), this, SLOT(requestAllVideoInput(QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllUdpListener(QString)), this, SLOT(requestAllUdpListener(QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllModuleHandlers(QString)), this, SLOT(requestAllModuleHandlers(QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginMetadata(QString,QString)), this, SLOT(requestPluginMetadata(QString,QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginObject(QString,QString)), this, SLOT(requestPluginObject(QString,QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginAudioInput(QString,QString)), this, SLOT(requestPluginAudioInput(QString,QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginMotionInput(QString,QString)), this, SLOT(requestPluginMotionInput(QString,QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginVideoInput(QString,QString)), this, SLOT(requestPluginVideoInput(QString,QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginUdpListener(QString,QString)), this, SLOT(requestPluginUdpListener(QString,QString)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginModuleHandlers(QString,QString)), this, SLOT(requestPluginModuleHandlers(QString,QString)));
+
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(eventSignal(QString,QList<QVariant>)), this, SLOT(eventSignal(QString,QList<QVariant>)));
+    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(fatalSignal(QString,QString)), this, SLOT(fatalSignal(QString,QString)));
 }
 
 // https://www.techiedelight.com/check-given-digraph-dag-directed-acyclic-graph-not/
@@ -583,10 +593,9 @@ void KijangPluginManager::dagDfsCheck(QString v, QMap<QString, bool> &discovered
 
 void KijangPluginManager::disablePluginAfterConfirmation(QString id)
 {
+    dynamic_cast<QObject*>(m_pluginObjectList.value(id))->disconnect();
+    dynamic_cast<QObject*>(m_pluginObjectList.value(id))->deleteLater();
     m_pluginObjectList.remove(id);
-    m_wrapperList.value(id)->disconnect();
-    m_wrapperList.value(id)->deleteLater();
-    m_wrapperList.remove(id);
     m_loaderList.value(id)->unload();
     m_loaderList.value(id)->deleteLater();
     m_loaderList.remove(id);
@@ -600,67 +609,67 @@ const QMap<QString, QString> &KijangPluginManager::pluginPathList() const
     return m_pluginPathList;
 }
 
-void KijangPluginManager::forwardAudioInputAdded(QString src, AudioInput *input) {
+void KijangPluginManager::audioInputAdded(QString src, AudioInput *input) {
     // TODO: Handle by manager
     emit pluginAudioInputAdded(src, input);
 }
 
-void KijangPluginManager::forwardAudioInputRemoved(QString src, AudioInput *input) {
+void KijangPluginManager::audioInputRemoved(QString src, AudioInput *input) {
     // TODO: Handle by manager
     emit pluginAudioInputRemoved(src, input);
 }
 
-void KijangPluginManager::forwardVideoInputAdded(QString src, VideoInput *input) {
+void KijangPluginManager::videoInputAdded(QString src, VideoInput *input) {
     // TODO: Handle by manager
     emit pluginVideoInputAdded(src, input);
 }
 
-void KijangPluginManager::forwardVideoInputRemoved(QString src, VideoInput *input) {
+void KijangPluginManager::videoInputRemoved(QString src, VideoInput *input) {
     // TODO: Handle by manager
     emit pluginVideoInputRemoved(src, input);
 }
 
-void KijangPluginManager::forwardMotionInputAdded(QString src, MotionInput *input) {
+void KijangPluginManager::motionInputAdded(QString src, MotionInput *input) {
     // TODO: Handle by manager
     emit pluginMotionInputAdded(src, input);
 }
 
-void KijangPluginManager::forwardMotionInputRemoved(QString src, MotionInput *input) {
+void KijangPluginManager::motionInputRemoved(QString src, MotionInput *input) {
     // TODO: Handle by manager
     emit pluginMotionInputRemoved(src, input);
 }
 
-void KijangPluginManager::forwardUdpListenerInterfaceAdded(QString src, UdpListenerInterface *interface) {
+void KijangPluginManager::udpListenerInterfaceAdded(QString src, UdpListenerInterface *interface) {
     // TODO: Handle by manager
     emit pluginUdpListenerInterfaceAdded(src, interface);
 }
 
-void KijangPluginManager::forwardUdpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) {
+void KijangPluginManager::udpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) {
     // TODO: Handle by manager
     emit pluginUdpListenerInterfaceRemoved(src, interface);
 }
 
-void KijangPluginManager::forwardModuleHandlerAdded(QString src, KijangModuleHandler *handler) {
+void KijangPluginManager::moduleHandlerAdded(QString src, KijangModuleHandler *handler) {
     m_networkManager->addModule(handler);
     emit pluginModuleHandlerAdded(src, handler);
 }
 
-void KijangPluginManager::forwardModuleHandlerRemoved(QString src, KijangModuleHandler *handler) {
+void KijangPluginManager::moduleHandlerRemoved(QString src, KijangModuleHandler *handler) {
     m_networkManager->removeModule(handler->module());
     emit pluginModuleHandlerRemoved(src, handler);
 }
 
-void KijangPluginManager::forwardRequestAllMetadata(QString src) {
+void KijangPluginManager::requestAllMetadata(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     m_pluginObjectList.value(src)->allMetadata(m_enabledPlugins);
 }
 
-void KijangPluginManager::forwardRequestAllPlugins(QString src) {
+void KijangPluginManager::requestAllPlugins(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     m_pluginObjectList.value(src)->allObjects(m_pluginObjectList);
 }
 
-void KijangPluginManager::forwardRequestAllAudioInput(QString src) {
+void KijangPluginManager::requestAllAudioInput(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     QMap<QString, QList<AudioInput *>> response;
     for (int i = 0; i < m_pluginObjectList.size(); i++) {
@@ -672,7 +681,7 @@ void KijangPluginManager::forwardRequestAllAudioInput(QString src) {
     m_pluginObjectList.value(src)->allAudioInputs(response);
 }
 
-void KijangPluginManager::forwardRequestAllMotionInput(QString src) {
+void KijangPluginManager::requestAllMotionInput(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     QMap<QString, QList<MotionInput *>> response;
     for (int i = 0; i < m_pluginObjectList.size(); i++) {
@@ -684,7 +693,7 @@ void KijangPluginManager::forwardRequestAllMotionInput(QString src) {
     m_pluginObjectList.value(src)->allMotionInputs(response);
 }
 
-void KijangPluginManager::forwardRequestAllVideoInput(QString src) {
+void KijangPluginManager::requestAllVideoInput(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     QMap<QString, QList<VideoInput *>> response;
     for (int i = 0; i < m_pluginObjectList.size(); i++) {
@@ -696,7 +705,7 @@ void KijangPluginManager::forwardRequestAllVideoInput(QString src) {
     m_pluginObjectList.value(src)->allVideoInputs(response);
 }
 
-void KijangPluginManager::forwardRequestAllUdpListener(QString src) {
+void KijangPluginManager::requestAllUdpListener(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     QMap<QString, QList<UdpListenerInterface *>> response;
     for (int i = 0; i < m_pluginObjectList.size(); i++) {
@@ -708,7 +717,7 @@ void KijangPluginManager::forwardRequestAllUdpListener(QString src) {
     m_pluginObjectList.value(src)->allUdpListenerInterfaces(response);
 }
 
-void KijangPluginManager::forwardRequestAllModuleHandlers(QString src) {
+void KijangPluginManager::requestAllModuleHandlers(QString src) {
     if (!m_enabledPlugins.contains(src)) return;
     QMap<QString, QList<KijangModuleHandler *>> response;
     for (int i = 0; i < m_pluginObjectList.size(); i++) {
@@ -720,47 +729,54 @@ void KijangPluginManager::forwardRequestAllModuleHandlers(QString src) {
     m_pluginObjectList.value(src)->allModuleHandlers(response);
 }
 
-void KijangPluginManager::forwardRequestPluginMetadata(QString src, QString plugin) {
+void KijangPluginManager::requestPluginMetadata(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginMetadata(plugin, m_pluginObjectList.value(plugin)->metadata());
 }
 
-void KijangPluginManager::forwardRequestPluginAudioInput(QString src, QString plugin) {
+void KijangPluginManager::requestPluginObject(QString src, QString object)
+{
+    if (!m_enabledPlugins.contains(src)) return;
+    if (!m_enabledPlugins.contains(object)) m_pluginObjectList.value(src)->pluginNonExistent(object);
+    m_pluginObjectList.value(src)->pluginObject(object, m_pluginObjectList.value(object));
+}
+
+void KijangPluginManager::requestPluginAudioInput(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginAudioInputs(plugin, m_pluginObjectList.value(plugin)->audioInputs());
 }
 
-void KijangPluginManager::forwardRequestPluginMotionInput(QString src, QString plugin) {
+void KijangPluginManager::requestPluginMotionInput(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginMotionInputs(plugin, m_pluginObjectList.value(plugin)->motionInputs());
 }
 
-void KijangPluginManager::forwardRequestPluginVideoInput(QString src, QString plugin) {
+void KijangPluginManager::requestPluginVideoInput(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginVideoInputs(plugin, m_pluginObjectList.value(plugin)->videoInputs());
 }
 
-void KijangPluginManager::forwardRequestPluginUdpListener(QString src, QString plugin) {
+void KijangPluginManager::requestPluginUdpListener(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginUdpListenerInterfaces(plugin, m_pluginObjectList.value(plugin)->udpListeners());
 }
 
-void KijangPluginManager::forwardRequestPluginModuleHandlers(QString src, QString plugin) {
+void KijangPluginManager::requestPluginModuleHandlers(QString src, QString plugin) {
     if (!m_enabledPlugins.contains(src)) return;
     if (!m_enabledPlugins.contains(plugin)) m_pluginObjectList.value(src)->pluginNonExistent(plugin);
     m_pluginObjectList.value(src)->pluginModuleHandlers(plugin, m_pluginObjectList.value(plugin)->moduleHandlers());
 }
 
-void KijangPluginManager::forwardEventSignal(QString src, QList<QVariant> values) {
+void KijangPluginManager::eventSignal(QString src, QList<QVariant> values) {
     emit pluginEvent(src, values);
 }
 
-void KijangPluginManager::forwardFatalSignal(QString src, QString error) {
+void KijangPluginManager::fatalSignal(QString src, QString error) {
     emit pluginFatal(src, error);
     QLoggingCategory plugin("plugin");
     if (disablePlugin(src, true)) {

@@ -20,7 +20,6 @@ set(PROJECT_SOURCES
         src/application/kijangapp.h src/application/kijangapp.cpp
         src/application/kijanglogger.h src/application/kijanglogger.cpp
         src/kijangplugin.h src/kijangplugin.cpp # Interface
-        src/kijangpluginwrapper.h src/kijangpluginwrapper.cpp
         src/application/kijangpluginmanager.h src/application/kijangpluginmanager.cpp
 
         src/input/kijanginputmanager.h src/input/kijanginputmanager.cpp

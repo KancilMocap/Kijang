@@ -3,7 +3,6 @@
 
 #include <QDebug>
 #include <QVariant>
-#include "kijangpluginwrapper.h"
 #include "input/audioinput.h"
 #include "input/motioninput.h"
 #include "input/videoinput.h"
@@ -32,7 +31,6 @@ public:
     explicit KijangPlugin() = default;
     virtual ~KijangPlugin() {}
     virtual KijangPluginMetadata metadata() = 0;
-    virtual void setWrapper(KijangPluginWrapper *wrapper) = 0;
 
     // Interfaces provided
     virtual QList<AudioInput *> audioInputs() = 0;
@@ -42,7 +40,7 @@ public:
     virtual QList<UdpListenerInterface *> udpListeners() = 0;
     virtual QList<KijangModuleHandler *> moduleHandlers() = 0;
 
-    // All responses - Slots (Plugin manager)
+    // Direct responses from plugin manager
     virtual void allMetadata(QMap<QString, KijangPluginMetadata> values) = 0;
     virtual void allObjects(QMap<QString, KijangPlugin *> values) = 0;
 
@@ -53,7 +51,6 @@ public:
     virtual void allUdpListenerInterfaces(QMap<QString, QList<UdpListenerInterface *>> interfaces) = 0;
     virtual void allModuleHandlers(QMap<QString, QList<KijangModuleHandler *>> handlers) = 0;
 
-    // Public responses - Slots (Plugin manager)
     virtual void pluginNonExistent(QString plugin) = 0;
     virtual void pluginMetadata(QString plugin, KijangPluginMetadata value) = 0;
     virtual void pluginObject(QString plugin, KijangPlugin *object) = 0;
@@ -65,9 +62,9 @@ public:
     virtual void pluginUdpListenerInterfaces(QString plugin, QList<UdpListenerInterface *> value) = 0;
     virtual void pluginModuleHandlers(QString plugin, QList<KijangModuleHandler *> value) = 0;
 
-    // Public events - Slots (Other plugin wrappers)
-    virtual void pluginAdded(QString plugin, KijangPluginMetadata metadata) = 0;
-    virtual void pluginRemoved(QString plugin, KijangPluginMetadata metadata) = 0;
+    // Signals from plugin manager
+    virtual void pluginAdded(QString self, KijangPluginMetadata metadata) = 0;
+    virtual void pluginRemoved(QString self, KijangPluginMetadata metadata) = 0;
 
     virtual void pluginAudioInputAdded(QString plugin, AudioInput *input) = 0;
     virtual void pluginAudioInputUpdated(QString plugin, AudioInput *input) = 0;
@@ -89,6 +86,47 @@ public:
     // Public responses - Slots (Plugin manager)
     virtual void pluginEvent(QString plugin, QList<QVariant> event) = 0;
     virtual void pluginFatal(QString plugin, QString error) = 0;
+
+signals:
+    // Events - Signals
+    virtual void audioInputAdded(QString src, AudioInput *input) = 0;
+    virtual void audioInputRemoved(QString src, AudioInput *input) = 0;
+    virtual void videoInputAdded(QString src, VideoInput *input) = 0;
+    virtual void videoInputRemoved(QString src, VideoInput *input) = 0;
+    virtual void motionInputAdded(QString src, MotionInput *input) = 0;
+    virtual void motionInputRemoved(QString src, MotionInput *input) = 0;
+
+    virtual void udpListenerInterfaceAdded(QString src, UdpListenerInterface *interface) = 0;
+    virtual void udpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) = 0;
+    virtual void moduleHandlerAdded(QString src, KijangModuleHandler *handler) = 0;
+    virtual void moduleHandlerRemoved(QString src, KijangModuleHandler *handler) = 0;
+
+    // Request all plugins - Signals
+    virtual void requestAllMetadata(QString src) = 0;
+    virtual void requestAllPlugins(QString src) = 0;
+
+    virtual void requestAllAudioInput(QString src) = 0;
+    virtual void requestAllMotionInput(QString src) = 0;
+    virtual void requestAllVideoInput(QString src) = 0;
+
+    virtual void requestAllUdpListener(QString src) = 0;
+    virtual void requestAllModuleHandlers(QString src) = 0;
+
+    // Request specific plugin  - Signals
+    virtual void requestPluginMetadata(QString src, QString plugin) = 0;
+    virtual void requestPluginObject(QString src, QString object) = 0;
+
+    virtual void requestPluginAudioInput(QString src, QString plugin) = 0;
+    virtual void requestPluginMotionInput(QString src, QString plugin) = 0;
+    virtual void requestPluginVideoInput(QString src, QString plugin) = 0;
+
+    virtual void requestPluginUdpListener(QString src, QString plugin) = 0;
+    virtual void requestPluginModuleHandlers(QString src, QString plugin) = 0;
+
+    // Special events
+    virtual void eventSignal(QString src, QList<QVariant> values) = 0;
+    virtual void fatalSignal(QString src, QString error=nullptr) = 0;
+
 };
 
 Q_DECLARE_INTERFACE(KijangPlugin, "moe.kancil.kijang.plugin")
