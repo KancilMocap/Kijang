@@ -257,7 +257,9 @@ void KijangPluginManager::loadPlugins()
 
             if (pluginInStartList(pluginMetadata.pluginID)) {
                 // Direct enable without going through enablePlugin, will verify later
-                connectPluginSignals(kijangPlugin);
+                KijangPluginWrapper *currentWrapper = new KijangPluginWrapper(kijangPlugin);
+                connectPluginSignals(currentWrapper);
+                m_pluginWrapperList.insert(pluginMetadata.pluginID, currentWrapper);
                 m_enabledPlugins.insert(pluginMetadata.pluginID, pluginMetadata);
                 m_loaderList.insert(pluginMetadata.pluginID, loader);
                 m_pluginObjectList.insert(pluginMetadata.pluginID, kijangPlugin);
@@ -388,7 +390,9 @@ bool KijangPluginManager::enablePlugin(QString id, bool enableDependencies, QLis
         }
     }
 
-    connectPluginSignals(kijangPlugin);
+    KijangPluginWrapper *currentWrapper = new KijangPluginWrapper(kijangPlugin);
+    connectPluginSignals(currentWrapper);
+    m_pluginWrapperList.insert(id, currentWrapper);
     m_pluginObjectList.insert(id, kijangPlugin);
     m_loaderList.insert(id, loader);
     m_enabledPlugins.insert(id, pluginMetadata);
@@ -516,42 +520,42 @@ const QMap<QString, KijangPlugin *> &KijangPluginManager::pluginObjectList() con
     return m_pluginObjectList;
 }
 
-void KijangPluginManager::connectPluginSignals(KijangPlugin *pluginObject)
+void KijangPluginManager::connectPluginSignals(KijangPluginWrapper *pluginWrapper)
 {
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(audioInputAdded(QString,AudioInput*)), this, SLOT(audioInputAdded(QString,AudioInput*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(audioInputRemoved(QString,AudioInput*)), this, SLOT(audioInputRemoved(QString,AudioInput*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(videoInputAdded(QString,VideoInput*)), this, SLOT(videoInputAdded(QString,VideoInput*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(videoInputRemoved(QString,VideoInput*)), this, SLOT(videoInputRemoved(QString,VideoInput*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(motionInputAdded(QString,MotionInput*)), this, SLOT(motionInputAdded(QString,MotionInput*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(motionInputRemoved(QString,MotionInput*)), this, SLOT(motionInputRemoved(QString,MotionInput*)));
+    connect(pluginWrapper, &KijangPluginWrapper::audioInputAdded, this, &KijangPluginManager::audioInputAdded);
+    connect(pluginWrapper, &KijangPluginWrapper::audioInputRemoved, this, &KijangPluginManager::audioInputRemoved);
+    connect(pluginWrapper, &KijangPluginWrapper::videoInputAdded, this, &KijangPluginManager::videoInputAdded);
+    connect(pluginWrapper, &KijangPluginWrapper::videoInputRemoved, this, &KijangPluginManager::videoInputRemoved);
+    connect(pluginWrapper, &KijangPluginWrapper::motionInputAdded, this, &KijangPluginManager::motionInputAdded);
+    connect(pluginWrapper, &KijangPluginWrapper::motionInputRemoved, this, &KijangPluginManager::motionInputRemoved);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(udpListenerInterfaceAdded(QString,UdpListenerInterface*)), this, SLOT(udpListenerInterfaceAdded(QString,UdpListenerInterface*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(udpListenerInterfaceRemoved(QString,UdpListenerInterface*)), this, SLOT(udpListenerInterfaceRemoved(QString,UdpListenerInterface*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(moduleHandlerAdded(QString,KijangModuleHandler*)), this, SLOT(moduleHandlerAdded(QString,KijangModuleHandler*)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(moduleHandlerRemoved(QString,KijangModuleHandler*)), this, SLOT(moduleHandlerRemoved(QString,KijangModuleHandler*)));
+    connect(pluginWrapper, &KijangPluginWrapper::udpListenerInterfaceAdded, this, &KijangPluginManager::udpListenerInterfaceAdded);
+    connect(pluginWrapper, &KijangPluginWrapper::udpListenerInterfaceRemoved, this, &KijangPluginManager::udpListenerInterfaceRemoved);
+    connect(pluginWrapper, &KijangPluginWrapper::moduleHandlerAdded, this, &KijangPluginManager::moduleHandlerAdded);
+    connect(pluginWrapper, &KijangPluginWrapper::moduleHandlerRemoved, this, &KijangPluginManager::moduleHandlerRemoved);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllMetadata(QString)), this, SLOT(requestAllMetadata(QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllPlugins(QString)), this, SLOT(requestAllPlugins(QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllMetadata, this, &KijangPluginManager::requestAllMetadata);
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllPlugins, this, &KijangPluginManager::requestAllPlugins);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllAudioInput(QString)), this, SLOT(requestAllAudioInput(QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllMotionInput(QString)), this, SLOT(requestAllMotionInput(QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllVideoInput(QString)), this, SLOT(requestAllVideoInput(QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllAudioInput, this, &KijangPluginManager::requestAllAudioInput);
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllMotionInput, this, &KijangPluginManager::requestAllMotionInput);
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllVideoInput, this, &KijangPluginManager::requestAllVideoInput);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllUdpListener(QString)), this, SLOT(requestAllUdpListener(QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestAllModuleHandlers(QString)), this, SLOT(requestAllModuleHandlers(QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllUdpListener, this, &KijangPluginManager::requestAllUdpListener);
+    connect(pluginWrapper, &KijangPluginWrapper::requestAllModuleHandlers, this, &KijangPluginManager::requestAllModuleHandlers);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginMetadata(QString,QString)), this, SLOT(requestPluginMetadata(QString,QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginObject(QString,QString)), this, SLOT(requestPluginObject(QString,QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginMetadata, this, &KijangPluginManager::requestPluginMetadata);
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginObject, this, &KijangPluginManager::requestPluginObject);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginAudioInput(QString,QString)), this, SLOT(requestPluginAudioInput(QString,QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginMotionInput(QString,QString)), this, SLOT(requestPluginMotionInput(QString,QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginVideoInput(QString,QString)), this, SLOT(requestPluginVideoInput(QString,QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginAudioInput, this, &KijangPluginManager::requestPluginAudioInput);
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginMotionInput, this, &KijangPluginManager::requestPluginMotionInput);
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginVideoInput, this, &KijangPluginManager::requestPluginVideoInput);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginUdpListener(QString,QString)), this, SLOT(requestPluginUdpListener(QString,QString)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(requestPluginModuleHandlers(QString,QString)), this, SLOT(requestPluginModuleHandlers(QString,QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginUdpListener, this, &KijangPluginManager::requestPluginUdpListener);
+    connect(pluginWrapper, &KijangPluginWrapper::requestPluginModuleHandlers, this, &KijangPluginManager::requestPluginModuleHandlers);
 
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(eventSignal(QString,QList<QVariant>)), this, SLOT(eventSignal(QString,QList<QVariant>)));
-    connect(dynamic_cast<QObject *>(pluginObject), SIGNAL(fatalSignal(QString,QString)), this, SLOT(fatalSignal(QString,QString)));
+    connect(pluginWrapper, &KijangPluginWrapper::eventSignal, this, &KijangPluginManager::eventSignal);
+    connect(pluginWrapper, &KijangPluginWrapper::fatalSignal, this, &KijangPluginManager::fatalSignal);
 }
 
 // https://www.techiedelight.com/check-given-digraph-dag-directed-acyclic-graph-not/
@@ -596,6 +600,9 @@ void KijangPluginManager::disablePluginAfterConfirmation(QString id)
     dynamic_cast<QObject*>(m_pluginObjectList.value(id))->disconnect();
     dynamic_cast<QObject*>(m_pluginObjectList.value(id))->deleteLater();
     m_pluginObjectList.remove(id);
+    m_pluginWrapperList.value(id)->disconnect();
+    m_pluginWrapperList.value(id)->deleteLater();
+    m_pluginWrapperList.remove(id);
     m_loaderList.value(id)->unload();
     m_loaderList.value(id)->deleteLater();
     m_loaderList.remove(id);
@@ -776,15 +783,15 @@ void KijangPluginManager::eventSignal(QString src, QList<QVariant> values) {
     emit pluginEvent(src, values);
 }
 
-void KijangPluginManager::fatalSignal(QString src, QString error) {
-    emit pluginFatal(src, error);
+void KijangPluginManager::fatalSignal(QString src, QString title, QList<QVariant> error) {
+    emit pluginFatal(src, title, error);
     QLoggingCategory plugin("plugin");
     if (disablePlugin(src, true)) {
-        qInfo(plugin) << "Plugin" << src << "disabled after fatal error" << error << "emitted";
+        qInfo(plugin) << "Plugin" << src << "disabled after fatal error" << title << "emitted";
         QWidget tempWidget;
         QMessageBox::critical(&tempWidget, "Plugin error", "An error has occurred in the plugin " + src + " and it has been disabled. Please check the logs for more information.");
     } else {
-        qCritical(plugin) << "Plugin" << src << "could not be disabled after error" << error << "emitted, plugins may not work as expected";
+        qCritical(plugin) << "Plugin" << src << "could not be disabled after error" << title << "emitted, plugins may not work as expected";
         QWidget tempWidget;
         QMessageBox::critical(&tempWidget, "Plugin error", "An error has occurred in the plugin " + src + " but it could not be disabled. The application may not function as intended.");
     }

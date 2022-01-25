@@ -16,6 +16,7 @@
 #include "../input/kijanginputmanager.h"
 #include "../network/kijangnetworkmanager.h"
 #include "../kijangplugin.h"
+#include "../kijangpluginwrapper.h"
 
 class KijangPluginManager : public QObject
 {
@@ -69,7 +70,7 @@ signals:
     void pluginModuleHandlerRemoved(QString plugin, KijangModuleHandler *handler);
 
     void pluginEvent(QString plugin, QList<QVariant> event);
-    void pluginFatal(QString plugin, QString error);
+    void pluginFatal(QString plugin, QString title, QList<QVariant> values);
 
     void hasPluginsChanged();
 
@@ -112,15 +113,16 @@ public slots:
 
     // Special events (QString src, KijangPlugin)
     void eventSignal(QString src, QList<QVariant> values);
-    void fatalSignal(QString src, QString error=nullptr);
+    void fatalSignal(QString src, QString title, QList<QVariant> values);
 
 private:
     bool m_hasPlugins;
-    void connectPluginSignals(KijangPlugin *pluginObject);
+    void connectPluginSignals(KijangPluginWrapper *pluginWrapper);
     bool pluginInStartList(QString plugin);
     QList<QString> startEnabledPlugins; // Loaded at start of program
     QMap<QString, KijangPlugin *> m_pluginObjectList; // For enabled plugins only
     QMap<QString, QPluginLoader *> m_loaderList; // For enabled plugins only
+    QMap<QString, KijangPluginWrapper *> m_pluginWrapperList; // For enabled plugins only
     QMap<QString, QString> m_pluginPathList; // For both enabled and disabled plugins
     QMap<QString, KijangPluginMetadata> m_enabledPlugins;
     QMap<QString, KijangPluginMetadata> m_disabledPlugins;

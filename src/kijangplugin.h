@@ -85,47 +85,47 @@ public:
 
     // Public responses - Slots (Plugin manager)
     virtual void pluginEvent(QString plugin, QList<QVariant> event) = 0;
-    virtual void pluginFatal(QString plugin, QString error) = 0;
+    virtual void pluginFatal(QString plugin, QString title, QList<QVariant> event) = 0;
 
 signals:
     // Events - Signals
-    virtual void audioInputAdded(QString src, AudioInput *input) = 0;
-    virtual void audioInputRemoved(QString src, AudioInput *input) = 0;
-    virtual void videoInputAdded(QString src, VideoInput *input) = 0;
-    virtual void videoInputRemoved(QString src, VideoInput *input) = 0;
-    virtual void motionInputAdded(QString src, MotionInput *input) = 0;
-    virtual void motionInputRemoved(QString src, MotionInput *input) = 0;
+    virtual void audioInputAdded(AudioInput *input) = 0;
+    virtual void audioInputRemoved(AudioInput *input) = 0;
+    virtual void videoInputAdded(VideoInput *input) = 0;
+    virtual void videoInputRemoved(VideoInput *input) = 0;
+    virtual void motionInputAdded(MotionInput *input) = 0;
+    virtual void motionInputRemoved(MotionInput *input) = 0;
 
-    virtual void udpListenerInterfaceAdded(QString src, UdpListenerInterface *interface) = 0;
-    virtual void udpListenerInterfaceRemoved(QString src, UdpListenerInterface *interface) = 0;
-    virtual void moduleHandlerAdded(QString src, KijangModuleHandler *handler) = 0;
-    virtual void moduleHandlerRemoved(QString src, KijangModuleHandler *handler) = 0;
+    virtual void udpListenerInterfaceAdded(UdpListenerInterface *interface) = 0;
+    virtual void udpListenerInterfaceRemoved(UdpListenerInterface *interface) = 0;
+    virtual void moduleHandlerAdded(KijangModuleHandler *handler) = 0;
+    virtual void moduleHandlerRemoved(KijangModuleHandler *handler) = 0;
 
     // Request all plugins - Signals
-    virtual void requestAllMetadata(QString src) = 0;
-    virtual void requestAllPlugins(QString src) = 0;
+    virtual void requestAllMetadata() = 0;
+    virtual void requestAllPlugins() = 0;
 
-    virtual void requestAllAudioInput(QString src) = 0;
-    virtual void requestAllMotionInput(QString src) = 0;
-    virtual void requestAllVideoInput(QString src) = 0;
+    virtual void requestAllAudioInput() = 0;
+    virtual void requestAllMotionInput() = 0;
+    virtual void requestAllVideoInput() = 0;
 
-    virtual void requestAllUdpListener(QString src) = 0;
-    virtual void requestAllModuleHandlers(QString src) = 0;
+    virtual void requestAllUdpListener() = 0;
+    virtual void requestAllModuleHandlers() = 0;
 
     // Request specific plugin  - Signals
-    virtual void requestPluginMetadata(QString src, QString plugin) = 0;
-    virtual void requestPluginObject(QString src, QString object) = 0;
+    virtual void requestPluginMetadata(QString plugin) = 0;
+    virtual void requestPluginObject(QString object) = 0;
 
-    virtual void requestPluginAudioInput(QString src, QString plugin) = 0;
-    virtual void requestPluginMotionInput(QString src, QString plugin) = 0;
-    virtual void requestPluginVideoInput(QString src, QString plugin) = 0;
+    virtual void requestPluginAudioInput(QString plugin) = 0;
+    virtual void requestPluginMotionInput(QString plugin) = 0;
+    virtual void requestPluginVideoInput(QString plugin) = 0;
 
-    virtual void requestPluginUdpListener(QString src, QString plugin) = 0;
-    virtual void requestPluginModuleHandlers(QString src, QString plugin) = 0;
+    virtual void requestPluginUdpListener(QString plugin) = 0;
+    virtual void requestPluginModuleHandlers(QString plugin) = 0;
 
     // Special events
-    virtual void eventSignal(QString src, QList<QVariant> values) = 0;
-    virtual void fatalSignal(QString src, QString error=nullptr) = 0;
+    virtual void eventSignal(QList<QVariant> values) = 0;
+    virtual void fatalSignal(QString title, QList<QVariant> values) = 0;
 
 };
 
